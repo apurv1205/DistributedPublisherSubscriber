@@ -15,7 +15,8 @@ if __name__ == '__main__':
 	response = raw_input()
 
 	# assuming client knows the ip of the accesspoint server
-	access_point = "localhost:50051"
+	# access_point = "localhost:50051"
+	access_point = "10.145.224.158:50051"
 	if response == "y" :
 		print "Enter topic"
 		topic = raw_input()
