@@ -39,6 +39,7 @@ def subscribe_topic(topic,self_ip):
 	print("Ack received: " + response.ack)
 
 def push_topic(topic,data):
+	print "ip:",ACCESS_POINT
 	channel = grpc.insecure_channel(ACCESS_POINT)
 	stub = pr_pb2_grpc.PublishTopicStub(channel)
 	response = stub.publishRequest(pr_pb2.topicData(topic=topic, data=data))
@@ -49,14 +50,15 @@ def get_front_ip():
 	stub = pr_pb2_grpc.PublishTopicStub(channel)
 	response = stub.getFrontIp(pr_pb2.empty())
 	print("Ip alloted: " + response.ip)
-	ACCESS_POINT = response.ip
+	print response.ip
+	return response.ip
 
 if __name__ == '__main__':
 	thread.start_new_thread(serve,())
 
 	a = json.load(open("options","r"))
 	CENTRAL_SERVER_IP = a["Central_server"]
-	get_front_ip()
+	ACCESS_POINT = get_front_ip()
 
 	print "Type 1 for publish\nType 2 for subscribe\n"
 	response = raw_input()

@@ -1,8 +1,6 @@
 syntax = "proto3";
 
-// The greeting service definition.
 service PublishTopic {
-  // Sends a greeting
   rpc publishRequest (topicData) returns (Acknowledge) {}
 
   rpc subscribeRequest (topicSubscribe) returns (Acknowledge) {}
@@ -17,7 +15,7 @@ service PublishTopic {
 
 }
 
-// The request message containing the user's name.
+
 message topicData {
   string topic = 1;
   string data = 2;
@@ -36,11 +34,9 @@ message ips {
   string ip = 1; 
 }
 
-// The response message containing the greetings
 message Acknowledge {
   string ack = 1;
 }
 
 message empty {
-
 }

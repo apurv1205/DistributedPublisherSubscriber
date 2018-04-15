@@ -5,8 +5,8 @@ import pr_pb2 as pr__pb2
 
 
 class PublishTopicStub(object):
-  """The greeting service definition.
-  """
+  # missing associated documentation comment in .proto file
+  pass
 
   def __init__(self, channel):
     """Constructor.
@@ -47,12 +47,12 @@ class PublishTopicStub(object):
 
 
 class PublishTopicServicer(object):
-  """The greeting service definition.
-  """
+  # missing associated documentation comment in .proto file
+  pass
 
   def publishRequest(self, request, context):
-    """Sends a greeting
-    """
+    # missing associated documentation comment in .proto file
+    pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
