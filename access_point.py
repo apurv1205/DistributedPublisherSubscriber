@@ -26,7 +26,6 @@ def forwardToClient(lst):
     channel = grpc.insecure_channel(client_ip)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
     response = stub.forwardData(request)
-    return response.ack
 
 def sendToClient(lst):
     request = lst[0]
@@ -34,7 +33,6 @@ def sendToClient(lst):
     channel = grpc.insecure_channel(client_ip)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
     response = stub.sendData(request)
-    return response.ack
 
 def generateForwardBackup(requestList) :
     for request in requestList :
@@ -90,6 +88,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             print client_ip
             lst.append([request,client_ip])
         results = pool.map(forwardToClient, lst)
+        return pr_pb2.acknowledge(ack="data sent to subscribed clients")
 
     def sendBackupRequest(self, request, context):
         dct = json.load(open("dataDB"+port+".json","r"))
