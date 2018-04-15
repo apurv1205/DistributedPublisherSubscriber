@@ -1,17 +1,25 @@
 syntax = "proto3";
 
 service PublishTopic {
-  rpc publishRequest (topicData) returns (Acknowledge) {}
+  rpc publishRequest (topicData) returns (acknowledge) {}
 
-  rpc subscribeRequest (topicSubscribe) returns (Acknowledge) {}
+  rpc subscribeRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc subscribeRequestCentral (topicSubscribeCentral) returns (acknowledge) {}
 
   rpc giveIps (topic) returns (stream ips) {}
 
-  rpc publish (topicData) returns (Acknowledge) {}
+  rpc publish (topicData) returns (acknowledge) {}
 
   rpc getFrontIp (empty) returns (ips) {}
 
-  rpc registerIp (ips) returns (Acknowledge) {}
+  rpc registerIp (ips) returns (acknowledge) {}
+
+  rpc sendBackupRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc sendBackup (stream topicData) returns (acknowledge) {}
+
+  rpc forwardBackup (stream topicData) returns (acknowledge) {}
 
 }
 
@@ -26,6 +34,12 @@ message topicSubscribe {
   string client_ip = 2;
 }
 
+message topicSubscribeCentral {
+  string topic = 1;
+  string client_ip = 2;
+  string type = 3;
+}
+
 message topic {
   string topic = 1;
 }
@@ -34,7 +48,7 @@ message ips {
   string ip = 1; 
 }
 
-message Acknowledge {
+message acknowledge {
   string ack = 1;
 }
 

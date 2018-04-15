@@ -17,6 +17,29 @@ port = sys.argv[1]
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 CENTRAL_SERVER_IP = ""
+subscribersDict = {}
+newSubscribers = {}
+
+def generateForwardBackup(requestList) :
+    for request in requestList :
+        yield pr_pb2.topicData(topic=request.topic,data=request.data)
+
+def forwardBackupToClient(lst):
+    requestList = lst[0]
+    client_ip = lst[1]
+    channel = grpc.insecure_channel(client_ip)
+    stub = pr_pb2_grpc.PublishTopicStub(channel)
+    response = stub.forwardBackup(generateForwardBackup(requestList))
+
+def generateBackup(topic) :
+    dct = json.load(open("dataDB"+port+".json","r"))
+    for data in dct[topic] :
+        yield pr_pb2.topicData(topic=topic,data=data)
+
+def subscribeServer(topic,subType):
+    channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+    stub = pr_pb2_grpc.PublishTopicStub(channel)
+    response = stub.subscribeRequestCentral(pr_pb2.topicSubscribeCentral(topic=topic,client_ip="localhost:"+str(port),type=subType))
 
 def register_ip():
     channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
@@ -44,8 +67,26 @@ def find_ips(topic):
 
 class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
 
+    def sendBackupRequest(self, request, context):
+        channel = grpc.insecure_channel(request.client_ip)
+        stub = pr_pb2_grpc.PublishTopicStub(channel)
+        response = stub.sendBackup(generateBackup(request.topic))
+        return pr_pb2.acknowledge(ack="data send to : "+request.client_ip+" complete...")
+
+    def sendBackup(self, request_iterator, context):
+        requestList = []
+        for request in request_iterator :
+            requestList.append(request)
+            topic = request.topic
+        pool = ThreadPool(len(newSubscribers[topic])) 
+        lst = []
+        for client_ip in newSubscribers[topic]:
+            lst.append([requestList,client_ip])
+        results = pool.map(forwardBackupToClient, lst)
+        del newSubscribers[topic]
+        return pr_pb2.acknowledge(ack="complete data backup received and forwarded to resepective clients...")
+
     def publishRequest(self, request, context):
-        print "hit"
         returned_ips = find_ips(request.topic)
         lst = []
         pool = ThreadPool(len(returned_ips)) 
@@ -53,17 +94,33 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             lst.append([request,returned_ip])
         results = pool.map(publishData, lst)
         print results
-        return pr_pb2.Acknowledge(ack="Published in "+str(len(results))+" topic servers")
+        return pr_pb2.acknowledge(ack="Published in "+str(len(results))+" topic servers")
 
     def subscribeRequest(self, request, context):
         print "Subscribe request from client",request.client_ip," for topic",request.topic
-        return pr_pb2.Acknowledge(ack="temporary acknowledge")
+        subType = ""
+        if request.topic not in subscribersDict.values() :
+            print "New subscriber"
+            subType = "new"
+            if request.topic not in newSubscribers.keys() : 
+                newSubscribers[request.topic] = []
+            newSubscribers[request.topic].append(request.client_ip)
+        else : 
+            print "Old subscriber"
+            subType = "old"
+        subscribersDict[request.client_ip] = request.topic
+        json.dump(subscribersDict,open("subscriberDB"+port+".json","w"))
+        subscribeServer(request.topic,subType)
+        return pr_pb2.acknowledge(ack="temporary acknowledge")
 
     def publish(self, request, context):
         print "Data received...",request.topic, request.data
-        with open("topicDb"+port+".json","a") as outfile :
-            json.dump([request.topic,request.data],outfile)
-        return pr_pb2.Acknowledge(ack="Data write in "+str(port)+" topic server complete...")
+        dct = json.load(open("dataDB"+port+".json","r"))
+        if request.topic not in dct.keys() : 
+            dct[request.topic] = []
+        dct[request.topic].append(request.data)
+        json.dump(dct,open("dataDB"+port+".json","w"))
+        return pr_pb2.acknowledge(ack="Data write in "+str(port)+" topic server complete...")
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -82,5 +139,6 @@ if __name__ == '__main__':
     CENTRAL_SERVER_IP = a["Central_server"]
     register_ip()
 
-    print "here"
+    json.dump({},open("dataDB"+port+".json","w"))
+    json.dump({},open("subscriberDB"+port+".json","w"))
     serve()

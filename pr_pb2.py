@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='pr.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x08pr.proto\"(\n\ttopicData\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"2\n\x0etopicSubscribe\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\"\x16\n\x05topic\x12\r\n\x05topic\x18\x01 \x01(\t\"\x11\n\x03ips\x12\n\n\x02ip\x18\x01 \x01(\t\"\x1a\n\x0b\x41\x63knowledge\x12\x0b\n\x03\x61\x63k\x18\x01 \x01(\t\"\x07\n\x05\x65mpty2\xf7\x01\n\x0cPublishTopic\x12,\n\x0epublishRequest\x12\n.topicData\x1a\x0c.Acknowledge\"\x00\x12\x33\n\x10subscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.Acknowledge\"\x00\x12\x1b\n\x07giveIps\x12\x06.topic\x1a\x04.ips\"\x00\x30\x01\x12%\n\x07publish\x12\n.topicData\x1a\x0c.Acknowledge\"\x00\x12\x1c\n\ngetFrontIp\x12\x06.empty\x1a\x04.ips\"\x00\x12\"\n\nregisterIp\x12\x04.ips\x1a\x0c.Acknowledge\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x08pr.proto\"(\n\ttopicData\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"2\n\x0etopicSubscribe\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\"G\n\x15topicSubscribeCentral\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\"\x16\n\x05topic\x12\r\n\x05topic\x18\x01 \x01(\t\"\x11\n\x03ips\x12\n\n\x02ip\x18\x01 \x01(\t\"\x1a\n\x0b\x61\x63knowledge\x12\x0b\n\x03\x61\x63k\x18\x01 \x01(\t\"\x07\n\x05\x65mpty2\xcb\x03\n\x0cPublishTopic\x12,\n\x0epublishRequest\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x33\n\x10subscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x41\n\x17subscribeRequestCentral\x12\x16.topicSubscribeCentral\x1a\x0c.acknowledge\"\x00\x12\x1b\n\x07giveIps\x12\x06.topic\x1a\x04.ips\"\x00\x30\x01\x12%\n\x07publish\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x1c\n\ngetFrontIp\x12\x06.empty\x1a\x04.ips\"\x00\x12\"\n\nregisterIp\x12\x04.ips\x1a\x0c.acknowledge\"\x00\x12\x34\n\x11sendBackupRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12*\n\nsendBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12-\n\rforwardBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x62\x06proto3')
 )
 
 
@@ -101,6 +101,51 @@ _TOPICSUBSCRIBE = _descriptor.Descriptor(
 )
 
 
+_TOPICSUBSCRIBECENTRAL = _descriptor.Descriptor(
+  name='topicSubscribeCentral',
+  full_name='topicSubscribeCentral',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='topicSubscribeCentral.topic', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='client_ip', full_name='topicSubscribeCentral.client_ip', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='topicSubscribeCentral.type', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=106,
+  serialized_end=177,
+)
+
+
 _TOPIC = _descriptor.Descriptor(
   name='topic',
   full_name='topic',
@@ -127,8 +172,8 @@ _TOPIC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=106,
-  serialized_end=128,
+  serialized_start=179,
+  serialized_end=201,
 )
 
 
@@ -158,20 +203,20 @@ _IPS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=130,
-  serialized_end=147,
+  serialized_start=203,
+  serialized_end=220,
 )
 
 
 _ACKNOWLEDGE = _descriptor.Descriptor(
-  name='Acknowledge',
-  full_name='Acknowledge',
+  name='acknowledge',
+  full_name='acknowledge',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ack', full_name='Acknowledge.ack', index=0,
+      name='ack', full_name='acknowledge.ack', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -189,8 +234,8 @@ _ACKNOWLEDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=149,
-  serialized_end=175,
+  serialized_start=222,
+  serialized_end=248,
 )
 
 
@@ -213,15 +258,16 @@ _EMPTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=177,
-  serialized_end=184,
+  serialized_start=250,
+  serialized_end=257,
 )
 
 DESCRIPTOR.message_types_by_name['topicData'] = _TOPICDATA
 DESCRIPTOR.message_types_by_name['topicSubscribe'] = _TOPICSUBSCRIBE
+DESCRIPTOR.message_types_by_name['topicSubscribeCentral'] = _TOPICSUBSCRIBECENTRAL
 DESCRIPTOR.message_types_by_name['topic'] = _TOPIC
 DESCRIPTOR.message_types_by_name['ips'] = _IPS
-DESCRIPTOR.message_types_by_name['Acknowledge'] = _ACKNOWLEDGE
+DESCRIPTOR.message_types_by_name['acknowledge'] = _ACKNOWLEDGE
 DESCRIPTOR.message_types_by_name['empty'] = _EMPTY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -239,6 +285,13 @@ topicSubscribe = _reflection.GeneratedProtocolMessageType('topicSubscribe', (_me
   ))
 _sym_db.RegisterMessage(topicSubscribe)
 
+topicSubscribeCentral = _reflection.GeneratedProtocolMessageType('topicSubscribeCentral', (_message.Message,), dict(
+  DESCRIPTOR = _TOPICSUBSCRIBECENTRAL,
+  __module__ = 'pr_pb2'
+  # @@protoc_insertion_point(class_scope:topicSubscribeCentral)
+  ))
+_sym_db.RegisterMessage(topicSubscribeCentral)
+
 topic = _reflection.GeneratedProtocolMessageType('topic', (_message.Message,), dict(
   DESCRIPTOR = _TOPIC,
   __module__ = 'pr_pb2'
@@ -253,12 +306,12 @@ ips = _reflection.GeneratedProtocolMessageType('ips', (_message.Message,), dict(
   ))
 _sym_db.RegisterMessage(ips)
 
-Acknowledge = _reflection.GeneratedProtocolMessageType('Acknowledge', (_message.Message,), dict(
+acknowledge = _reflection.GeneratedProtocolMessageType('acknowledge', (_message.Message,), dict(
   DESCRIPTOR = _ACKNOWLEDGE,
   __module__ = 'pr_pb2'
-  # @@protoc_insertion_point(class_scope:Acknowledge)
+  # @@protoc_insertion_point(class_scope:acknowledge)
   ))
-_sym_db.RegisterMessage(Acknowledge)
+_sym_db.RegisterMessage(acknowledge)
 
 empty = _reflection.GeneratedProtocolMessageType('empty', (_message.Message,), dict(
   DESCRIPTOR = _EMPTY,
@@ -275,8 +328,8 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=187,
-  serialized_end=434,
+  serialized_start=260,
+  serialized_end=719,
   methods=[
   _descriptor.MethodDescriptor(
     name='publishRequest',
@@ -297,9 +350,18 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
     options=None,
   ),
   _descriptor.MethodDescriptor(
+    name='subscribeRequestCentral',
+    full_name='PublishTopic.subscribeRequestCentral',
+    index=2,
+    containing_service=None,
+    input_type=_TOPICSUBSCRIBECENTRAL,
+    output_type=_ACKNOWLEDGE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
     name='giveIps',
     full_name='PublishTopic.giveIps',
-    index=2,
+    index=3,
     containing_service=None,
     input_type=_TOPIC,
     output_type=_IPS,
@@ -308,7 +370,7 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='publish',
     full_name='PublishTopic.publish',
-    index=3,
+    index=4,
     containing_service=None,
     input_type=_TOPICDATA,
     output_type=_ACKNOWLEDGE,
@@ -317,7 +379,7 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='getFrontIp',
     full_name='PublishTopic.getFrontIp',
-    index=4,
+    index=5,
     containing_service=None,
     input_type=_EMPTY,
     output_type=_IPS,
@@ -326,9 +388,36 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='registerIp',
     full_name='PublishTopic.registerIp',
-    index=5,
+    index=6,
     containing_service=None,
     input_type=_IPS,
+    output_type=_ACKNOWLEDGE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='sendBackupRequest',
+    full_name='PublishTopic.sendBackupRequest',
+    index=7,
+    containing_service=None,
+    input_type=_TOPICSUBSCRIBE,
+    output_type=_ACKNOWLEDGE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='sendBackup',
+    full_name='PublishTopic.sendBackup',
+    index=8,
+    containing_service=None,
+    input_type=_TOPICDATA,
+    output_type=_ACKNOWLEDGE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='forwardBackup',
+    full_name='PublishTopic.forwardBackup',
+    index=9,
+    containing_service=None,
+    input_type=_TOPICDATA,
     output_type=_ACKNOWLEDGE,
     options=None,
   ),

@@ -18,8 +18,10 @@ port = sys.argv[1]
 self_ip = "localhost:"+str(port)
 
 class Client(pr_pb2_grpc.PublishTopicServicer):
-	def temp():
-		pass
+	def forwardBackup(self, request_iterator, context):
+		for request in request_iterator :
+			print request
+		return pr_pb2.acknowledge(ack="Backup received by the client...")
 
 def serve():
 	server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -36,7 +38,6 @@ def subscribe_topic(topic,self_ip):
 	channel = grpc.insecure_channel(ACCESS_POINT)
 	stub = pr_pb2_grpc.PublishTopicStub(channel)
 	response = stub.subscribeRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=self_ip))
-	print("Ack received: " + response.ack)
 
 def push_topic(topic,data):
 	print "ip:",ACCESS_POINT
@@ -60,19 +61,21 @@ if __name__ == '__main__':
 	CENTRAL_SERVER_IP = a["Central_server"]
 	ACCESS_POINT = get_front_ip()
 
-	print "Type 1 for publish\nType 2 for subscribe\n"
-	response = raw_input()
+	while (True) :
 
-	if response == "1" :
-		print "Enter topic"
-		topic = raw_input()
+		print "Type 1 for publish\nType 2 for subscribe\n"
+		response = raw_input()
 
-		print "Enter data"
-		data = raw_input()
+		if response == "1" :
+			print "Enter topic"
+			topic = raw_input()
 
-		push_topic(topic,data)
+			print "Enter data"
+			data = raw_input()
 
-	elif response == "2" :
-		print "Enter topic"
-		topic = raw_input()
-		subscribe_topic(topic,self_ip)
+			push_topic(topic,data)
+
+		elif response == "2" :
+			print "Enter topic"
+			topic = raw_input()
+			subscribe_topic(topic,self_ip)

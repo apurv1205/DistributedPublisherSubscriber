@@ -9,14 +9,26 @@ import thread
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 dct = {}
-dct['a'] = []
-dct['a'].append("localhost:50053")
-dct['a'].append("localhost:50054")
+dct['a'] = {}
+dct['a']["localhost:50053"] = []
+dct['a']["localhost:50054"] = []
 
 class CentralServer(pr_pb2_grpc.PublishTopicServicer):
+    def subscribeRequestCentral(self, request, context):
+        print "Subscribe request from access point",request.client_ip," for topic",request.topic," of type :",request.type
+        allotedServer = "localhost:50053"
+        dct[request.topic][allotedServer].append(request.client_ip)
+        if request.type == "new" :
+            channel = grpc.insecure_channel(allotedServer)
+            stub = pr_pb2_grpc.PublishTopicStub(channel)
+            response = stub.sendBackupRequest(pr_pb2.topicSubscribe(topic=request.topic, client_ip=request.client_ip))
+            print response.ack
+        return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
 
     def giveIps(self, request, context):
-        for ip in dct[request.topic] :
+        print request.topic
+        ipDct = dct[request.topic]
+        for ip in ipDct.keys():
             yield pr_pb2.ips(ip=ip)
 
     def getFrontIp(self, request, context) :
@@ -42,7 +54,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         a["ip"].append(request.ip)
 
         json.dump(a,open("list_front_end","w"))
-        return pr_pb2.Acknowledge(ack="Ip added...")
+        return pr_pb2.acknowledge(ack="Ip added...")
 
 
 def serve():
