@@ -5,19 +5,36 @@ import grpc
 import pr_pb2
 import pr_pb2_grpc
 import thread
+import random
+import sys
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
-dct = {}
-dct['a'] = {}
-dct['a']["localhost:50053"] = []
-dct['a']["localhost:50054"] = []
+# dct = {}
+# dct['a'] = {}
+# dct['a']["localhost:50053"] = []
+# dct['a']["localhost:50054"] = []
 
 class CentralServer(pr_pb2_grpc.PublishTopicServicer):
     def subscribeRequestCentral(self, request, context):
+        dct = json.load(open("topic_servers_dict","r"))
         print "Subscribe request from access point",request.client_ip," for topic",request.topic," of type :",request.type
-        allotedServer = "localhost:50053"
-        dct[request.topic][allotedServer].append(request.client_ip)
+        allotedServer = ""
+        if dct.has_key(request.topic) :
+            ipDct = dct[request.topic]
+            l = sys.maxsize
+            tempIp = ""
+            for ip in ipDct.keys() :
+                if len(ipDct[ip]) < l :
+                    l=len(ipDct[ip])
+                    tempIp = ip
+            allotedServer = ip
+            dct[request.topic][allotedServer].append(request.client_ip)
+            json.dump(dct,open("topic_servers_dict","w"))
+
+        else :
+            return pr_pb2.acknowledge(ack="No data exists for topic :"+request.topic)
+
         if request.type == "new" :
             channel = grpc.insecure_channel(allotedServer)
             stub = pr_pb2_grpc.PublishTopicStub(channel)
@@ -26,6 +43,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
 
     def giveSubscriberIps(self, request, context):
+        dct = json.load(open("topic_servers_dict","r"))
         ipList = dct[request.topic][request.client_ip]
         if len(ipList) == 0 : 
             yield pr_pb2.ips(ip="none")
@@ -34,8 +52,18 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
 
     def giveIps(self, request, context):
         print request.topic
-        ipDct = dct[request.topic]
-        for ip in ipDct.keys():
+        dct = json.load(open("topic_servers_dict","r"))
+        if dct.has_key(request.topic) :
+            ipDct = dct[request.topic]
+            for ip in ipDct.keys():
+                yield pr_pb2.ips(ip=ip)
+
+        else : 
+            dct[request.topic] = {}
+            dct_access_point = json.load(open("list_front_end","r"))
+            ip = random.choice(dct_access_point["ip"])
+            dct[request.topic][ip] = []
+            json.dump(dct,(open("topic_servers_dict","w")))
             yield pr_pb2.ips(ip=ip)
 
     def getFrontIp(self, request, context) :
@@ -78,4 +106,5 @@ def serve():
 
 if __name__ == '__main__':
     json.dump({},open("list_front_end","w"))
+    json.dump({},open("topic_servers_dict","w"))
     serve()
