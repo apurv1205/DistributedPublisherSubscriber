@@ -1,38 +1,53 @@
-# Copyright 2015 gRPC authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""The Python implementation of the GRPC helloworld.Greeter server."""
-
 from concurrent import futures
 import time
-
+import json
 import grpc
-
-import helloworld_pb2
-import helloworld_pb2_grpc
+import pr_pb2
+import pr_pb2_grpc
+import thread
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
+dct = {}
+dct['a'] = []
+dct['a'].append("localhost:50053")
+dct['a'].append("localhost:50054")
 
-class Greeter(helloworld_pb2_grpc.GreeterServicer):
+class CentralServer(pr_pb2_grpc.PublishTopicServicer):
 
-    def SayHello(self, request, context):
-        return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
+    def giveIps(self, request, context):
+        for ip in dct[request.topic] :
+            yield pr_pb2.ips(ip=ip)
+
+    def getFrontIp(self, request, context) :
+        a = json.load(open("list_front_end","r"))
+        i = a["index"]
+        m = a["ip"][i]
+        if a["index"] == len(a["ip"])-1 :
+            a["index"] = 0
+        else :
+            a["index"] += 1
+
+        json.dump(a,open("list_front_end","w"))
+        return pr_pb2.ips(ip=m)
+
+    def registerIp(self, request, context) :
+        a = json.load(open("list_front_end","r"))
+        if (len(a)==0) : 
+            a = {}
+            a["index"] = 0
+            a["ip"] = []
+
+        i = a["index"]
+        a["ip"].append(request.ip)
+
+        json.dump(a,open("list_front_end","w"))
+        return pr_pb2.Acknowledge(ack="Ip added...")
 
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    helloworld_pb2_grpc.add_GreeterServicer_to_server(Greeter(), server)
+    pr_pb2_grpc.add_PublishTopicServicer_to_server(CentralServer(), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     try:
@@ -43,4 +58,5 @@ def serve():
 
 
 if __name__ == '__main__':
+    json.dump({},open("list_front_end","w"))
     serve()

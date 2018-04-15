@@ -14,9 +14,34 @@ class PublishTopicStub(object):
     Args:
       channel: A grpc.Channel.
     """
+    self.publishRequest = channel.unary_unary(
+        '/PublishTopic/publishRequest',
+        request_serializer=pr__pb2.topicData.SerializeToString,
+        response_deserializer=pr__pb2.Acknowledge.FromString,
+        )
+    self.subscribeRequest = channel.unary_unary(
+        '/PublishTopic/subscribeRequest',
+        request_serializer=pr__pb2.topicSubscribe.SerializeToString,
+        response_deserializer=pr__pb2.Acknowledge.FromString,
+        )
+    self.giveIps = channel.unary_stream(
+        '/PublishTopic/giveIps',
+        request_serializer=pr__pb2.topic.SerializeToString,
+        response_deserializer=pr__pb2.ips.FromString,
+        )
     self.publish = channel.unary_unary(
         '/PublishTopic/publish',
         request_serializer=pr__pb2.topicData.SerializeToString,
+        response_deserializer=pr__pb2.Acknowledge.FromString,
+        )
+    self.getFrontIp = channel.unary_unary(
+        '/PublishTopic/getFrontIp',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.ips.FromString,
+        )
+    self.registerIp = channel.unary_unary(
+        '/PublishTopic/registerIp',
+        request_serializer=pr__pb2.ips.SerializeToString,
         response_deserializer=pr__pb2.Acknowledge.FromString,
         )
 
@@ -25,9 +50,44 @@ class PublishTopicServicer(object):
   """The greeting service definition.
   """
 
-  def publish(self, request, context):
+  def publishRequest(self, request, context):
     """Sends a greeting
     """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def subscribeRequest(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def giveIps(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def publish(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def getFrontIp(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def registerIp(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
@@ -35,9 +95,34 @@ class PublishTopicServicer(object):
 
 def add_PublishTopicServicer_to_server(servicer, server):
   rpc_method_handlers = {
+      'publishRequest': grpc.unary_unary_rpc_method_handler(
+          servicer.publishRequest,
+          request_deserializer=pr__pb2.topicData.FromString,
+          response_serializer=pr__pb2.Acknowledge.SerializeToString,
+      ),
+      'subscribeRequest': grpc.unary_unary_rpc_method_handler(
+          servicer.subscribeRequest,
+          request_deserializer=pr__pb2.topicSubscribe.FromString,
+          response_serializer=pr__pb2.Acknowledge.SerializeToString,
+      ),
+      'giveIps': grpc.unary_stream_rpc_method_handler(
+          servicer.giveIps,
+          request_deserializer=pr__pb2.topic.FromString,
+          response_serializer=pr__pb2.ips.SerializeToString,
+      ),
       'publish': grpc.unary_unary_rpc_method_handler(
           servicer.publish,
           request_deserializer=pr__pb2.topicData.FromString,
+          response_serializer=pr__pb2.Acknowledge.SerializeToString,
+      ),
+      'getFrontIp': grpc.unary_unary_rpc_method_handler(
+          servicer.getFrontIp,
+          request_deserializer=pr__pb2.empty.FromString,
+          response_serializer=pr__pb2.ips.SerializeToString,
+      ),
+      'registerIp': grpc.unary_unary_rpc_method_handler(
+          servicer.registerIp,
+          request_deserializer=pr__pb2.ips.FromString,
           response_serializer=pr__pb2.Acknowledge.SerializeToString,
       ),
   }
