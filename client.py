@@ -23,6 +23,10 @@ class Client(pr_pb2_grpc.PublishTopicServicer):
 			print request
 		return pr_pb2.acknowledge(ack="Backup received by the client...")
 
+	def forwardData(self, request, context):
+		print request
+		return pr_pb2.acknowledge(ack="Data received by the client...")
+
 def serve():
 	server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 	pr_pb2_grpc.add_PublishTopicServicer_to_server(Client(), server)

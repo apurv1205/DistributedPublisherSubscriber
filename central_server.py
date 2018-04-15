@@ -25,6 +25,13 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
             print response.ack
         return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
 
+    def giveSubscriberIps(self, request, context):
+        ipList = dct[request.topic][request.client_ip]
+        if len(ipList) == 0 : 
+            yield pr_pb2.ips(ip="none")
+        for ip in ipList:
+            yield pr_pb2.ips(ip=ip)
+
     def giveIps(self, request, context):
         print request.topic
         ipDct = dct[request.topic]

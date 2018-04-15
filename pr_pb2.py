@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='pr.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x08pr.proto\"(\n\ttopicData\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"2\n\x0etopicSubscribe\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\"G\n\x15topicSubscribeCentral\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\"\x16\n\x05topic\x12\r\n\x05topic\x18\x01 \x01(\t\"\x11\n\x03ips\x12\n\n\x02ip\x18\x01 \x01(\t\"\x1a\n\x0b\x61\x63knowledge\x12\x0b\n\x03\x61\x63k\x18\x01 \x01(\t\"\x07\n\x05\x65mpty2\xcb\x03\n\x0cPublishTopic\x12,\n\x0epublishRequest\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x33\n\x10subscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x41\n\x17subscribeRequestCentral\x12\x16.topicSubscribeCentral\x1a\x0c.acknowledge\"\x00\x12\x1b\n\x07giveIps\x12\x06.topic\x1a\x04.ips\"\x00\x30\x01\x12%\n\x07publish\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x1c\n\ngetFrontIp\x12\x06.empty\x1a\x04.ips\"\x00\x12\"\n\nregisterIp\x12\x04.ips\x1a\x0c.acknowledge\"\x00\x12\x34\n\x11sendBackupRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12*\n\nsendBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12-\n\rforwardBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x08pr.proto\"(\n\ttopicData\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"2\n\x0etopicSubscribe\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\"G\n\x15topicSubscribeCentral\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\"\x16\n\x05topic\x12\r\n\x05topic\x18\x01 \x01(\t\"\x11\n\x03ips\x12\n\n\x02ip\x18\x01 \x01(\t\"\x1a\n\x0b\x61\x63knowledge\x12\x0b\n\x03\x61\x63k\x18\x01 \x01(\t\"\x07\n\x05\x65mpty2\xce\x04\n\x0cPublishTopic\x12,\n\x0epublishRequest\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x33\n\x10subscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x41\n\x17subscribeRequestCentral\x12\x16.topicSubscribeCentral\x1a\x0c.acknowledge\"\x00\x12\x1b\n\x07giveIps\x12\x06.topic\x1a\x04.ips\"\x00\x30\x01\x12%\n\x07publish\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x1c\n\ngetFrontIp\x12\x06.empty\x1a\x04.ips\"\x00\x12\"\n\nregisterIp\x12\x04.ips\x1a\x0c.acknowledge\"\x00\x12\x34\n\x11sendBackupRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12*\n\nsendBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12-\n\rforwardBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12.\n\x11giveSubscriberIps\x12\x0f.topicSubscribe\x1a\x04.ips\"\x00\x30\x01\x12&\n\x08sendData\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12)\n\x0b\x66orwardData\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x62\x06proto3')
 )
 
 
@@ -329,7 +329,7 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=260,
-  serialized_end=719,
+  serialized_end=850,
   methods=[
   _descriptor.MethodDescriptor(
     name='publishRequest',
@@ -416,6 +416,33 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
     name='forwardBackup',
     full_name='PublishTopic.forwardBackup',
     index=9,
+    containing_service=None,
+    input_type=_TOPICDATA,
+    output_type=_ACKNOWLEDGE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='giveSubscriberIps',
+    full_name='PublishTopic.giveSubscriberIps',
+    index=10,
+    containing_service=None,
+    input_type=_TOPICSUBSCRIBE,
+    output_type=_IPS,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='sendData',
+    full_name='PublishTopic.sendData',
+    index=11,
+    containing_service=None,
+    input_type=_TOPICDATA,
+    output_type=_ACKNOWLEDGE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='forwardData',
+    full_name='PublishTopic.forwardData',
+    index=12,
     containing_service=None,
     input_type=_TOPICDATA,
     output_type=_ACKNOWLEDGE,

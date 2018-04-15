@@ -21,6 +21,11 @@ service PublishTopic {
 
   rpc forwardBackup (stream topicData) returns (acknowledge) {}
 
+  rpc giveSubscriberIps (topicSubscribe) returns (stream ips) {}
+
+  rpc sendData (topicData) returns (acknowledge) {}
+
+  rpc forwardData (topicData) returns (acknowledge) {}
 }
 
 
