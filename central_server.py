@@ -10,36 +10,61 @@ import sys
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
-# dct = {}
-# dct['a'] = {}
-# dct['a']["localhost:50053"] = []
-# dct['a']["localhost:50054"] = []
-
 class CentralServer(pr_pb2_grpc.PublishTopicServicer):
+    def querryTopics(self, request, context):
+        dct = json.load(open("topic_servers_dict","r"))
+        for topic in dct.keys() :
+            yield pr_pb2.topic(topic=topic)
+
+    def replicaRequest(self, request, context):
+        dct = json.load(open("topic_servers_dict","r"))
+        dctIp = dct[request.topic]
+        for key, value in dctIp.items() :
+            allotedServer = key
+            if key == request.client_ip :
+                return pr_pb2.acknowledge(ack="Requesting front end server already a replica for "+request.topic)
+            if request.client_ip in value :
+                print "done modifying the dct"
+                value.remove(request.client_ip)
+        dct[request.topic][request.client_ip] = []
+        dct[request.topic][request.client_ip].append(request.client_ip)
+        print dct[request.topic]
+        json.dump(dct,open("topic_servers_dict","w"))
+        channel = grpc.insecure_channel(allotedServer)
+        stub = pr_pb2_grpc.PublishTopicStub(channel)
+        response = stub.sendBackupRequestReplica(pr_pb2.topicSubscribe(topic=request.topic, client_ip=request.client_ip))
+        print response.ack
+        return pr_pb2.acknowledge(ack="Requesting front end server "+request.client_ip+" made a replica of topic(backup sent) "+request.topic)
+
     def subscribeRequestCentral(self, request, context):
         dct = json.load(open("topic_servers_dict","r"))
         print "Subscribe request from access point",request.client_ip," for topic",request.topic," of type :",request.type
         allotedServer = ""
-        if dct.has_key(request.topic) :
+        if request.type == "new" :
             ipDct = dct[request.topic]
-            l = sys.maxsize
-            tempIp = ""
-            for ip in ipDct.keys() :
-                if len(ipDct[ip]) < l :
-                    l=len(ipDct[ip])
-                    tempIp = ip
-            allotedServer = ip
+            if ipDct.has_key(request.client_ip) :
+                allotedServer = request.client_ip 
+            else :
+                l = sys.maxsize
+                tempIp = ""
+                for ip in ipDct.keys() :
+                    if len(ipDct[ip]) < l :
+                        l=len(ipDct[ip])
+                        tempIp = ip
+                allotedServer = ip
             dct[request.topic][allotedServer].append(request.client_ip)
             json.dump(dct,open("topic_servers_dict","w"))
 
         else :
-            return pr_pb2.acknowledge(ack="No data exists for topic :"+request.topic)
+            dctIp = dct[request.topic]
+            for key, value in dctIp.items() :
+                if request.client_ip in value :
+                    allotedServer=key
 
-        if request.type == "new" :
-            channel = grpc.insecure_channel(allotedServer)
-            stub = pr_pb2_grpc.PublishTopicStub(channel)
-            response = stub.sendBackupRequest(pr_pb2.topicSubscribe(topic=request.topic, client_ip=request.client_ip))
-            print response.ack
+        channel = grpc.insecure_channel(allotedServer)
+        stub = pr_pb2_grpc.PublishTopicStub(channel)
+        response = stub.sendBackupRequest(pr_pb2.topicSubscribe(topic=request.topic, client_ip=request.client_ip))
+        print response.ack
         return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
 
     def giveSubscriberIps(self, request, context):

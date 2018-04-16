@@ -39,9 +39,15 @@ def serve():
 		server.stop(0)
 
 def subscribe_topic(topic,self_ip):
-	channel = grpc.insecure_channel(ACCESS_POINT)
-	stub = pr_pb2_grpc.PublishTopicStub(channel)
-	response = stub.subscribeRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=self_ip))
+	lst = json.load(open("subscribedTopics"+port,"r"))
+	if topic in lst :
+		print "Already subscribed to the topic :",topic
+	else :
+		channel = grpc.insecure_channel(ACCESS_POINT)
+		stub = pr_pb2_grpc.PublishTopicStub(channel)
+		response = stub.subscribeRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=self_ip))
+		lst.append(topic)
+		json.dump(lst,open("subscribedTopics"+port,"w"))
 
 def push_topic(topic,data):
 	print "ip:",ACCESS_POINT
@@ -61,13 +67,15 @@ def get_front_ip():
 if __name__ == '__main__':
 	thread.start_new_thread(serve,())
 
+	json.dump([],open("subscribedTopics"+port,"w"))
+
 	a = json.load(open("options","r"))
 	CENTRAL_SERVER_IP = a["Central_server"]
 	ACCESS_POINT = get_front_ip()
 
 	while (True) :
 
-		print "Type 1 for publish\nType 2 for subscribe\n"
+		print "Type 1 for publish\nType 2 for subscribe"
 		response = raw_input()
 
 		if response == "1" :
@@ -80,6 +88,25 @@ if __name__ == '__main__':
 			push_topic(topic,data)
 
 		elif response == "2" :
-			print "Enter topic"
-			topic = raw_input()
-			subscribe_topic(topic,self_ip)
+			channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+			stub = pr_pb2_grpc.PublishTopicStub(channel)
+			responses = stub.querryTopics(pr_pb2.empty())
+			topicList = []
+			for i,response in enumerate(responses) :
+				print i,": "+response.topic
+				topicList.append(response.topic)
+
+			if len(topicList) > 0 :	
+				print "Select topic from following choices :"
+				selectedNumber = raw_input()
+				try :
+					if int(selectedNumber) < len(topicList) :
+						subscribe_topic(topicList[int(selectedNumber)],self_ip)
+					else :
+						print "Invalid option selected ..."
+
+				except :
+					print "Invalid option selected ..."
+
+			else :
+				print "No topics found ..."

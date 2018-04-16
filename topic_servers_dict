@@ -1,1 +1,1 @@
-{"a": {"localhost:50052": ["localhost:50053"]}, "b": {"localhost:50053": ["localhost:50053"]}}
+{"a": {"localhost:50053": ["localhost:50053"]}}

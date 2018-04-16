@@ -26,6 +26,14 @@ service PublishTopic {
   rpc sendData (topicData) returns (acknowledge) {}
 
   rpc forwardData (topicData) returns (acknowledge) {}
+
+  rpc replicaRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc querryTopics (empty) returns (stream topic) {}
+
+  rpc sendBackupRequestReplica (topicSubscribe) returns (acknowledge) {}
+
+  rpc sendBackupReplica (stream topicData) returns (acknowledge) {}
 }
 
 

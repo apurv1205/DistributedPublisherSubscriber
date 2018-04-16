@@ -79,6 +79,26 @@ class PublishTopicStub(object):
         request_serializer=pr__pb2.topicData.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
+    self.replicaRequest = channel.unary_unary(
+        '/PublishTopic/replicaRequest',
+        request_serializer=pr__pb2.topicSubscribe.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
+    self.querryTopics = channel.unary_stream(
+        '/PublishTopic/querryTopics',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.topic.FromString,
+        )
+    self.sendBackupRequestReplica = channel.unary_unary(
+        '/PublishTopic/sendBackupRequestReplica',
+        request_serializer=pr__pb2.topicSubscribe.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
+    self.sendBackupReplica = channel.stream_unary(
+        '/PublishTopic/sendBackupReplica',
+        request_serializer=pr__pb2.topicData.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
 
 
 class PublishTopicServicer(object):
@@ -176,6 +196,34 @@ class PublishTopicServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def replicaRequest(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def querryTopics(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def sendBackupRequestReplica(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def sendBackupReplica(self, request_iterator, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PublishTopicServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -241,6 +289,26 @@ def add_PublishTopicServicer_to_server(servicer, server):
       ),
       'forwardData': grpc.unary_unary_rpc_method_handler(
           servicer.forwardData,
+          request_deserializer=pr__pb2.topicData.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'replicaRequest': grpc.unary_unary_rpc_method_handler(
+          servicer.replicaRequest,
+          request_deserializer=pr__pb2.topicSubscribe.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'querryTopics': grpc.unary_stream_rpc_method_handler(
+          servicer.querryTopics,
+          request_deserializer=pr__pb2.empty.FromString,
+          response_serializer=pr__pb2.topic.SerializeToString,
+      ),
+      'sendBackupRequestReplica': grpc.unary_unary_rpc_method_handler(
+          servicer.sendBackupRequestReplica,
+          request_deserializer=pr__pb2.topicSubscribe.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'sendBackupReplica': grpc.stream_unary_rpc_method_handler(
+          servicer.sendBackupReplica,
           request_deserializer=pr__pb2.topicData.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),
