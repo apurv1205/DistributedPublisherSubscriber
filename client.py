@@ -64,6 +64,10 @@ def get_front_ip():
 	print response.ip
 	return response.ip
 
+def generateTopics(lst,client_ip):
+	for topic in lst :
+		yield pr_pb2.topicSubscribe(topic=topic,client_ip=client_ip)		
+
 if __name__ == '__main__':
 	thread.start_new_thread(serve,())
 
@@ -75,7 +79,7 @@ if __name__ == '__main__':
 
 	while (True) :
 
-		print "Type 1 for publish\nType 2 for subscribe"
+		print "Type 1 for publish\nType 2 for subscribe\nType 3 for exit"
 		response = raw_input()
 
 		if response == "1" :
@@ -110,3 +114,12 @@ if __name__ == '__main__':
 
 			else :
 				print "No topics found ..."
+
+		elif response == "3" :
+			lst = json.load(open("subscribedTopics"+port,"r"))
+			channel = grpc.insecure_channel(ACCESS_POINT)
+			stub = pr_pb2_grpc.PublishTopicStub(channel)
+			response = stub.unsubscribeRequest(generateTopics(lst,"localhost:"+port))
+			json.dump([],open("subscribedTopics"+port,"w"))
+			print "exiting now..."
+			exit()

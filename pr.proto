@@ -34,6 +34,12 @@ service PublishTopic {
   rpc sendBackupRequestReplica (topicSubscribe) returns (acknowledge) {}
 
   rpc sendBackupReplica (stream topicData) returns (acknowledge) {}
+
+  rpc unsubscribeRequest (stream topicSubscribe) returns (acknowledge) {}
+
+  rpc deReplicaRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc unsubscribeRequestCentral (topicSubscribe) returns (acknowledge) {}
 }
 
 

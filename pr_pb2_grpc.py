@@ -99,6 +99,21 @@ class PublishTopicStub(object):
         request_serializer=pr__pb2.topicData.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
+    self.unsubscribeRequest = channel.stream_unary(
+        '/PublishTopic/unsubscribeRequest',
+        request_serializer=pr__pb2.topicSubscribe.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
+    self.deReplicaRequest = channel.unary_unary(
+        '/PublishTopic/deReplicaRequest',
+        request_serializer=pr__pb2.topicSubscribe.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
+    self.unsubscribeRequestCentral = channel.unary_unary(
+        '/PublishTopic/unsubscribeRequestCentral',
+        request_serializer=pr__pb2.topicSubscribe.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
 
 
 class PublishTopicServicer(object):
@@ -224,6 +239,27 @@ class PublishTopicServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def unsubscribeRequest(self, request_iterator, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def deReplicaRequest(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def unsubscribeRequestCentral(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PublishTopicServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -310,6 +346,21 @@ def add_PublishTopicServicer_to_server(servicer, server):
       'sendBackupReplica': grpc.stream_unary_rpc_method_handler(
           servicer.sendBackupReplica,
           request_deserializer=pr__pb2.topicData.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'unsubscribeRequest': grpc.stream_unary_rpc_method_handler(
+          servicer.unsubscribeRequest,
+          request_deserializer=pr__pb2.topicSubscribe.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'deReplicaRequest': grpc.unary_unary_rpc_method_handler(
+          servicer.deReplicaRequest,
+          request_deserializer=pr__pb2.topicSubscribe.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'unsubscribeRequestCentral': grpc.unary_unary_rpc_method_handler(
+          servicer.unsubscribeRequestCentral,
+          request_deserializer=pr__pb2.topicSubscribe.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),
   }

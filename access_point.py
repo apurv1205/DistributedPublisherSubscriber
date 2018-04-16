@@ -77,8 +77,35 @@ def find_ips(topic):
     return lst
 
 class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
+    def unsubscribeRequest(self, request_iterator, context):
+        topicList = []
+        client_ip = ""
+        for request in request_iterator :
+            client_ip = request.client_ip
+            topicList.append(request.topic)
+        subscribersDict = json.load(open("subscriberDB"+port+".json","r"))
+        for topic in topicList :
+            subscribersDict[topic].remove(client_ip)
+            if len(subscribersDict[topic]) <= THRESHOLD and len(subscribersDict[topic]) > 0 :
+                channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+                stub = pr_pb2_grpc.PublishTopicStub(channel)
+                response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip="localhost:"+port))
+                if response.ack == "DONE" :
+                    dct = json.load(open("dataDB"+port+".json","r"))
+                    del dct[topic]
+                    json.dump(dct,open("dataDB"+port+".json","w"))
+            else :
+                channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+                stub = pr_pb2_grpc.PublishTopicStub(channel)
+                response = stub.unsubscribeRequestCentral(pr_pb2.topicSubscribe(topic=topic,client_ip="localhost:"+port))
+                if len(subscribersDict[topic]) == 0:
+                    del subscribersDict[topic]
+        json.dump(subscribersDict,open("subscriberDB"+port+".json","w"))
+        return pr_pb2.acknowledge(ack="done")
+
 
     def sendData(self, request, context):
+        subscribersDict = json.load(open("subscriberDB"+port+".json","r"))
         pool = ThreadPool(len(subscribersDict[request.topic])) 
         lst = []
         for client_ip in subscribersDict[request.topic]:
@@ -141,7 +168,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
     def subscribeRequest(self, request, context):
         print "Subscribe request from client",request.client_ip," for topic",request.topic
         subType = ""
-
+        subscribersDict = json.load(open("subscriberDB"+port+".json","r"))
         if request.topic not in subscribersDict.keys() : 
             subscribersDict[request.topic] = []
             print "New subscriber, new frontend subscriber"
@@ -175,15 +202,6 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         responses = stub.giveSubscriberIps(pr_pb2.topicSubscribe(topic=request.topic,client_ip="localhost:"+port))
         ipList = []
         for response in responses :
-            # if response.ip == "localhost:"+port :
-            #     pool = ThreadPool(len(subscribersDict[request.topic])) 
-            #     lst = []
-            #     print "here",request.topic,subscribersDict[request.topic]
-            #     for client_ip in subscribersDict[request.topic]:
-            #         print client_ip
-            #         lst.append([request,client_ip])
-            #     results = pool.map(forwardToClient, lst)
-            # else : 
             ipList.append(response.ip)
             print("IP received: " + response.ip)
         if ipList[0] == "none" :

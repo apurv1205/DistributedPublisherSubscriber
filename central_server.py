@@ -11,6 +11,38 @@ import sys
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 class CentralServer(pr_pb2_grpc.PublishTopicServicer):
+    
+    def unsubscribeRequestCentral(self, request, context):
+        dct = json.load(open("topic_servers_dict","r"))
+        dctIp = dct[request.topic]
+        for key, value in dctIp.items():
+            if request.client_ip in value :
+                dct[request.topic][key].remove(request.client_ip)
+        json.dump(dct,open("topic_servers_dict","w"))
+        return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
+
+    def deReplicaRequest(self, request, context):
+        dct = json.load(open("topic_servers_dict","r"))
+        dctIp = dct[request.topic]
+        extraSubscribers = []
+        if len(dctIp.keys()) == 1 :
+            return pr_pb2.acknowledge(ack="ERROR") 
+        extraSubscribers = dct[request.topic][request.client_ip]
+        del dct[request.topic][request.client_ip]
+        dctIp = dct[request.topic]
+        for subscriber in extraSubscribers :
+            allotedServer = ""
+            l = sys.maxsize
+            tempIp = ""
+            for ip in dctIp.keys() :
+                if len(dctIp[ip]) < l :
+                    l=len(dctIp[ip])
+                    tempIp = ip
+            allotedServer = tempIp
+            dct[request.topic][allotedServer].append(subscriber)
+        json.dump(dct,open("topic_servers_dict","w"))
+        return pr_pb2.acknowledge(ack="DONE") 
+
     def querryTopics(self, request, context):
         dct = json.load(open("topic_servers_dict","r"))
         for topic in dct.keys() :
@@ -51,7 +83,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
                     if len(ipDct[ip]) < l :
                         l=len(ipDct[ip])
                         tempIp = ip
-                allotedServer = ip
+                allotedServer = tempIp
             dct[request.topic][allotedServer].append(request.client_ip)
             json.dump(dct,open("topic_servers_dict","w"))
 
