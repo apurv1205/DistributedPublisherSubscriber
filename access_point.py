@@ -8,6 +8,7 @@ import sys
 import csv
 from multiprocessing.dummy import Pool as ThreadPool 
 import json
+import socket
 
 if len(sys.argv) < 2 : 
     print "ERROR : Enter the port for access point server...exiting"
@@ -18,6 +19,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 CENTRAL_SERVER_IP = ""
 THRESHOLD = 1
+SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 subscribersDict = {}
 newSubscribers = {}
@@ -55,7 +57,7 @@ def generateBackup(topic,dct) :
 def register_ip():
     channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
-    response = stub.registerIp(pr_pb2.ips(ip = "localhost:"+str(port)))
+    response = stub.registerIp(pr_pb2.ips(ip = str(SELF_IP)+":"+str(port)))
     print(response.ack)
 
 def publishData(lst):
@@ -89,7 +91,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             if len(subscribersDict[topic]) <= THRESHOLD and len(subscribersDict[topic]) > 0 :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
-                response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip="localhost:"+port))
+                response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if response.ack == "DONE" :
                     dct = json.load(open("dataDB"+port+".json","r"))
                     del dct[topic]
@@ -97,7 +99,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             else :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
-                response = stub.unsubscribeRequestCentral(pr_pb2.topicSubscribe(topic=topic,client_ip="localhost:"+port))
+                response = stub.unsubscribeRequestCentral(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if len(subscribersDict[topic]) == 0:
                     del subscribersDict[topic]
         json.dump(subscribersDict,open("subscriberDB"+port+".json","w"))
@@ -182,12 +184,12 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         if len(subscribersDict[request.topic]) > THRESHOLD :
             channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
             stub = pr_pb2_grpc.PublishTopicStub(channel)
-            response = stub.replicaRequest(pr_pb2.topicSubscribe(topic=request.topic,client_ip="localhost:"+port))
+            response = stub.replicaRequest(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
 
         json.dump(subscribersDict,open("subscriberDB"+port+".json","w"))
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
-        response = stub.subscribeRequestCentral(pr_pb2.topicSubscribeCentral(topic=request.topic,client_ip="localhost:"+str(port),type=subType))
+        response = stub.subscribeRequestCentral(pr_pb2.topicSubscribeCentral(topic=request.topic,client_ip=str(SELF_IP)+":"+str(port),type=subType))
         return pr_pb2.acknowledge(ack="temporary acknowledge")
 
     def publish(self, request, context):
@@ -199,7 +201,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         json.dump(dct,open("dataDB"+port+".json","w"))
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
-        responses = stub.giveSubscriberIps(pr_pb2.topicSubscribe(topic=request.topic,client_ip="localhost:"+port))
+        responses = stub.giveSubscriberIps(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
         ipList = []
         for response in responses :
             ipList.append(response.ip)
@@ -216,7 +218,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     pr_pb2_grpc.add_PublishTopicServicer_to_server(AccessPoint(), server)
-    server.add_insecure_port('[::]:'+port)
+    server.add_insecure_port(str(SELF_IP)+':'+port)
     server.start()
     try:
         while True:

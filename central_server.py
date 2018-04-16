@@ -7,11 +7,13 @@ import pr_pb2_grpc
 import thread
 import random
 import sys
+import socket
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
+SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
 class CentralServer(pr_pb2_grpc.PublishTopicServicer):
-    
+
     def unsubscribeRequestCentral(self, request, context):
         dct = json.load(open("topic_servers_dict","r"))
         dctIp = dct[request.topic]
