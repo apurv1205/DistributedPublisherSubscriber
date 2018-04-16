@@ -154,7 +154,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     pr_pb2_grpc.add_PublishTopicServicer_to_server(CentralServer(), server)
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port(SELF_IP+':50051')
     server.start()
     try:
         while True:

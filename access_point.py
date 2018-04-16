@@ -164,7 +164,6 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         for returned_ip in returned_ips :
             lst.append([request,returned_ip])
         results = pool.map(publishData, lst)
-        print results
         return pr_pb2.acknowledge(ack="Published in "+str(len(results))+" topic servers")
 
     def subscribeRequest(self, request, context):
