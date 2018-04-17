@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+service PublishTopic {
+  rpc publishRequest (topicData) returns (acknowledge) {}
+
+  rpc subscribeRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc subscribeRequestCentral (topicSubscribeCentral) returns (acknowledge) {}
+
+  rpc giveIps (topic) returns (stream ips) {}
+
+  rpc publish (topicData) returns (acknowledge) {}
+
+  rpc getFrontIp (empty) returns (ips) {}
+
+  rpc registerIp (ips) returns (acknowledge) {}
+
+  rpc sendBackupRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc sendBackup (stream topicData) returns (acknowledge) {}
+
+  rpc forwardBackup (stream topicData) returns (acknowledge) {}
+
+  rpc giveSubscriberIps (topicSubscribe) returns (stream ips) {}
+
+  rpc sendData (topicData) returns (acknowledge) {}
+
+  rpc forwardData (topicData) returns (acknowledge) {}
+
+  rpc replicaRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc querryTopics (empty) returns (stream topic) {}
+
+  rpc sendBackupRequestReplica (topicSubscribe) returns (acknowledge) {}
+
+  rpc sendBackupReplica (stream topicData) returns (acknowledge) {}
+
+  rpc unsubscribeRequest (stream topicSubscribe) returns (acknowledge) {}
+
+  rpc deReplicaRequest (topicSubscribe) returns (acknowledge) {}
+
+  rpc unsubscribeRequestCentral (topicSubscribe) returns (acknowledge) {}
+}
+
+
+message topicData {
+  string topic = 1;
+  string data = 2;
+}
+
+message topicSubscribe {
+  string topic = 1;
+  string client_ip = 2;
+}
+
+message topicSubscribeCentral {
+  string topic = 1;
+  string client_ip = 2;
+  string type = 3;
+}
+
+message topic {
+  string topic = 1;
+}
+
+message ips {
+  string ip = 1; 
+}
+
+message acknowledge {
+  string ack = 1;
+}
+
+message empty {
+}

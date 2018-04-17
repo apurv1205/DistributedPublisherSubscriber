@@ -85,7 +85,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         for request in request_iterator :
             client_ip = request.client_ip
             topicList.append(request.topic)
-        subscribersDict = json.load(open("subscriberDB"+port+".json","r"))
+        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
         for topic in topicList :
             subscribersDict[topic].remove(client_ip)
             if len(subscribersDict[topic]) <= THRESHOLD and len(subscribersDict[topic]) > 0 :
@@ -93,21 +93,21 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
                 response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if response.ack == "DONE" :
-                    dct = json.load(open("dataDB"+port+".json","r"))
+                    dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
                     del dct[topic]
-                    json.dump(dct,open("dataDB"+port+".json","w"))
+                    json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
             else :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
                 response = stub.unsubscribeRequestCentral(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if len(subscribersDict[topic]) == 0:
                     del subscribersDict[topic]
-        json.dump(subscribersDict,open("subscriberDB"+port+".json","w"))
+        json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
         return pr_pb2.acknowledge(ack="done")
 
 
     def sendData(self, request, context):
-        subscribersDict = json.load(open("subscriberDB"+port+".json","r"))
+        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
         pool = ThreadPool(len(subscribersDict[request.topic])) 
         lst = []
         for client_ip in subscribersDict[request.topic]:
@@ -117,14 +117,14 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="data sent to subscribed clients")
 
     def sendBackupRequest(self, request, context):
-        dct = json.load(open("dataDB"+port+".json","r"))
+        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
         channel = grpc.insecure_channel(request.client_ip)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         response = stub.sendBackup(generateBackup(request.topic,dct))
         return pr_pb2.acknowledge(ack="data send to : "+request.client_ip+" complete...")
 
     def sendBackupRequestReplica(self, request, context):
-        dct = json.load(open("dataDB"+port+".json","r"))
+        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
         channel = grpc.insecure_channel(request.client_ip)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         response = stub.sendBackupReplica(generateBackup(request.topic,dct))
@@ -134,13 +134,13 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         requestList = []
         for request in request_iterator :
             requestList.append(request)
-        dct = json.load(open("dataDB"+port+".json","r"))
+        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
         for request in requestList :
             print request
             if request.topic not in dct.keys() : 
                 dct[request.topic] = []
             dct[request.topic].append(request.data)
-        json.dump(dct,open("dataDB"+port+".json","w"))
+        json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
         return pr_pb2.acknowledge(ack="complete data backup received by the replica...")
 
     def sendBackup(self, request_iterator, context):
@@ -169,7 +169,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
     def subscribeRequest(self, request, context):
         print "Subscribe request from client",request.client_ip," for topic",request.topic
         subType = ""
-        subscribersDict = json.load(open("subscriberDB"+port+".json","r"))
+        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
         if request.topic not in subscribersDict.keys() : 
             subscribersDict[request.topic] = []
             print "New subscriber, new frontend subscriber"
@@ -185,7 +185,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             stub = pr_pb2_grpc.PublishTopicStub(channel)
             response = stub.replicaRequest(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
 
-        json.dump(subscribersDict,open("subscriberDB"+port+".json","w"))
+        json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         response = stub.subscribeRequestCentral(pr_pb2.topicSubscribeCentral(topic=request.topic,client_ip=str(SELF_IP)+":"+str(port),type=subType))
@@ -193,11 +193,11 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
 
     def publish(self, request, context):
         print "Data received...",request.topic, request.data
-        dct = json.load(open("dataDB"+port+".json","r"))
+        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
         if request.topic not in dct.keys() : 
             dct[request.topic] = []
         dct[request.topic].append(request.data)
-        json.dump(dct,open("dataDB"+port+".json","w"))
+        json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         responses = stub.giveSubscriberIps(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
@@ -228,9 +228,9 @@ def serve():
 
 if __name__ == '__main__':
     a = json.load(open("options","r"))
-    CENTRAL_SERVER_IP = a["Central_server"]
+    CENTRAL_SERVER_IP = a["centralServer"]
     register_ip()
 
-    json.dump({},open("dataDB"+port+".json","w"))
-    json.dump({},open("subscriberDB"+port+".json","w"))
+    json.dump({},open("dataBackup/frontendDataDB"+port+".json","w"))
+    json.dump({},open("dataBackup/frontendSubscriberDB"+port+".json","w"))
     serve()

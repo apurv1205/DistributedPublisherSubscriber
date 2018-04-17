@@ -41,7 +41,7 @@ def serve():
 		server.stop(0)
 
 def subscribe_topic(topic,self_ip):
-	lst = json.load(open("subscribedTopics"+port,"r"))
+	lst = json.load(open("dataBackup/clientSubscribedTopics"+port,"r"))
 	if topic in lst :
 		print "Already subscribed to the topic :",topic
 	else :
@@ -49,7 +49,7 @@ def subscribe_topic(topic,self_ip):
 		stub = pr_pb2_grpc.PublishTopicStub(channel)
 		response = stub.subscribeRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=self_ip))
 		lst.append(topic)
-		json.dump(lst,open("subscribedTopics"+port,"w"))
+		json.dump(lst,open("dataBackup/clientSubscribedTopics"+port,"w"))
 
 def push_topic(topic,data):
 	channel = grpc.insecure_channel(ACCESS_POINT)
@@ -72,15 +72,15 @@ def generateTopics(lst,client_ip):
 if __name__ == '__main__':
 	thread.start_new_thread(serve,())
 
-	json.dump([],open("subscribedTopics"+port,"w"))
+	json.dump([],open("dataBackup/clientSubscribedTopics"+port,"w"))
 
 	a = json.load(open("options","r"))
-	CENTRAL_SERVER_IP = a["Central_server"]
+	CENTRAL_SERVER_IP = a["centralServer"]
 	ACCESS_POINT = get_front_ip()
 
 	while (True) :
 
-		print "Type 1 for publish\nType 2 for subscribe\nType 3 for exit"
+		print "Type 1 for publish\nType 2 for subscribe\nType 3 for unsubscribe\nType 4 for exit"
 		response = raw_input()
 
 		if response == "1" :
@@ -102,7 +102,7 @@ if __name__ == '__main__':
 				topicList.append(response.topic)
 
 			if len(topicList) > 0 :	
-				print "Select topic from following choices :"
+				print "Select topic from above choices :"
 				selectedNumber = raw_input()
 				try :
 					if int(selectedNumber) < len(topicList) :
@@ -117,10 +117,41 @@ if __name__ == '__main__':
 				print "No topics found ..."
 
 		elif response == "3" :
-			lst = json.load(open("subscribedTopics"+port,"r"))
+			lst = json.load(open("dataBackup/clientSubscribedTopics"+port,"r"))
+			for i, topic in enumerate(lst) :
+				print i,": "+topic 
+			unsubscribeList = []
+			if len(lst) > 0 :	
+				print "Select topics from above choices, seperated by spaces:"
+				selectedNumbers = raw_input().split()
+				for selectedNumber in selectedNumbers :
+					try :
+						if int(selectedNumber) < len(lst) :
+							unsubscribeList.append(str(lst[int(selectedNumber)]))
+						else :
+							print "Invalid options selected ..."
+							unsubscribeList = []
+							break
+
+					except :
+						unsubscribeList = []
+						print "Invalid options selected ..."
+
+			else :
+				print "No topics subscribed to ..."
+			if len(unsubscribeList) > 0 :
+				channel = grpc.insecure_channel(ACCESS_POINT)
+				stub = pr_pb2_grpc.PublishTopicStub(channel)
+				response = stub.unsubscribeRequest(generateTopics(lst,str(SELF_IP)+":"+port))
+				new_list = [x for x in lst if x not in unsubscribeList]
+				json.dump(new_list,open("dataBackup/clientSubscribedTopics"+port,"w"))
+				print "unsubscribed from topics :",unsubscribeList
+
+		elif response == "4" :
+			lst = json.load(open("dataBackup/clientSubscribedTopics"+port,"r"))
 			channel = grpc.insecure_channel(ACCESS_POINT)
 			stub = pr_pb2_grpc.PublishTopicStub(channel)
 			response = stub.unsubscribeRequest(generateTopics(lst,str(SELF_IP)+":"+port))
-			json.dump([],open("subscribedTopics"+port,"w"))
+			json.dump([],open("dataBackup/clientSubscribedTopics"+port,"w"))
 			print "exiting now..."
 			exit()
