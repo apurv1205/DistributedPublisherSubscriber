@@ -23,10 +23,6 @@ class Client(pr_pb2_grpc.PublishTopicServicer):
 	def forwardBackup(self, request_iterator, context):
 		for request in request_iterator :
 			print request
-		return pr_pb2.acknowledge(ack="Backup received by the client...")
-
-	def forwardData(self, request, context):
-		print request
 		return pr_pb2.acknowledge(ack="Data received by the client...")
 
 def serve():

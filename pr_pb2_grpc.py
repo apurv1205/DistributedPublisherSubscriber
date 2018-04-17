@@ -26,7 +26,7 @@ class PublishTopicStub(object):
         )
     self.subscribeRequestCentral = channel.unary_unary(
         '/PublishTopic/subscribeRequestCentral',
-        request_serializer=pr__pb2.topicSubscribeCentral.SerializeToString,
+        request_serializer=pr__pb2.topicDataType.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
     self.giveIps = channel.unary_stream(
@@ -71,11 +71,6 @@ class PublishTopicStub(object):
         )
     self.sendData = channel.unary_unary(
         '/PublishTopic/sendData',
-        request_serializer=pr__pb2.topicData.SerializeToString,
-        response_deserializer=pr__pb2.acknowledge.FromString,
-        )
-    self.forwardData = channel.unary_unary(
-        '/PublishTopic/forwardData',
         request_serializer=pr__pb2.topicData.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
@@ -204,13 +199,6 @@ class PublishTopicServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def forwardData(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
   def replicaRequest(self, request, context):
     # missing associated documentation comment in .proto file
     pass
@@ -275,7 +263,7 @@ def add_PublishTopicServicer_to_server(servicer, server):
       ),
       'subscribeRequestCentral': grpc.unary_unary_rpc_method_handler(
           servicer.subscribeRequestCentral,
-          request_deserializer=pr__pb2.topicSubscribeCentral.FromString,
+          request_deserializer=pr__pb2.topicDataType.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),
       'giveIps': grpc.unary_stream_rpc_method_handler(
@@ -320,11 +308,6 @@ def add_PublishTopicServicer_to_server(servicer, server):
       ),
       'sendData': grpc.unary_unary_rpc_method_handler(
           servicer.sendData,
-          request_deserializer=pr__pb2.topicData.FromString,
-          response_serializer=pr__pb2.acknowledge.SerializeToString,
-      ),
-      'forwardData': grpc.unary_unary_rpc_method_handler(
-          servicer.forwardData,
           request_deserializer=pr__pb2.topicData.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),

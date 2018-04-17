@@ -24,41 +24,31 @@ SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())
 subscribersDict = {}
 newSubscribers = {}
 
-def forwardToClient(lst):
-    request = lst[0]
-    client_ip = lst[1]
-    channel = grpc.insecure_channel(client_ip)
-    stub = pr_pb2_grpc.PublishTopicStub(channel)
-    response = stub.forwardData(request)
+def generateBackup(topic,dct) :
+    for data in dct[topic] :
+        yield pr_pb2.topicData(topic=topic,data=data)
 
-def sendToClient(lst):
+def sendToFrontend(lst):
     request = lst[0]
     client_ip = lst[1]
     channel = grpc.insecure_channel(client_ip)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
     response = stub.sendData(request)
 
-def generateForwardBackup(requestList) :
-    for request in requestList :
-        yield pr_pb2.topicData(topic=request.topic,data=request.data)
-
 def forwardBackupToClient(lst):
     requestList = lst[0]
     client_ip = lst[1]
+    temp_dct = {}
+    temp_topic = ""
+    for request in requestList :
+        if temp_dct.has_key(request.topic) : pass
+        else : 
+            temp_dct[request.topic] = []
+        temp_dct[request.topic].append(request.data)
+        temp_topic = request.topic
     channel = grpc.insecure_channel(client_ip)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
-    response = stub.forwardBackup(generateForwardBackup(requestList))
-
-def generateBackup(topic,dct) :
-    for data in dct[topic] :
-        yield pr_pb2.topicData(topic=topic,data=data)
-    
-
-def register_ip():
-    channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
-    stub = pr_pb2_grpc.PublishTopicStub(channel)
-    response = stub.registerIp(pr_pb2.ips(ip = str(SELF_IP)+":"+str(port)))
-    print(response.ack)
+    response = stub.forwardBackup(generateBackup(temp_topic,temp_dct))
 
 def publishData(lst):
     request = lst[0]
@@ -68,17 +58,38 @@ def publishData(lst):
     response = stub.publish(pr_pb2.topicData(topic=request.topic, data=request.data))
     return response.ack
 
-def find_ips(topic):
+def register_ip():
     channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
-    responses = stub.giveIps(pr_pb2.topic(topic=topic))
-    lst =[]
-    for response in responses :
-        print("IP received: " + response.ip)
-        lst.append(response.ip)
-    return lst
+    response = stub.registerIp(pr_pb2.ips(ip = str(SELF_IP)+":"+str(port)))
+    print(response.ack)
 
 class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
+    def subscribeRequest(self, request, context):
+        print "Subscribe request from client",request.client_ip," for topic",request.topic
+        subType = ""
+        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
+        if request.topic not in subscribersDict.keys() : 
+            subscribersDict[request.topic] = []
+            print "New subscriber, new frontend subscriber"
+            subType = "new"
+        else : 
+            print "New subscriber, old frontend subscriber"
+            subType = "old"
+        newSubscribers[request.topic] = []
+        newSubscribers[request.topic].append(request.client_ip)
+        subscribersDict[request.topic].append(request.client_ip)
+        if len(subscribersDict[request.topic]) > THRESHOLD :
+            channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+            stub = pr_pb2_grpc.PublishTopicStub(channel)
+            response = stub.replicaRequest(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
+
+        json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
+        channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+        stub = pr_pb2_grpc.PublishTopicStub(channel)
+        response = stub.subscribeRequestCentral(pr_pb2.topicDataType(topic=request.topic,client_ip=str(SELF_IP)+":"+str(port),type=subType))
+        return pr_pb2.acknowledge(ack="temporary acknowledge")
+
     def unsubscribeRequest(self, request_iterator, context):
         topicList = []
         client_ip = ""
@@ -105,6 +116,19 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
         return pr_pb2.acknowledge(ack="done")
 
+    def sendBackup(self, request_iterator, context):
+        requestList = []
+        topic = ""
+        for request in request_iterator :
+            requestList.append(request)
+            topic = request.topic
+        pool = ThreadPool(len(newSubscribers[topic])) 
+        lst = []
+        for client_ip in newSubscribers[topic]:
+            lst.append([requestList,client_ip])
+        results = pool.map(forwardBackupToClient, lst)
+        del newSubscribers[topic]
+        return pr_pb2.acknowledge(ack="complete data backup received and forwarded to resepective clients...")
 
     def sendData(self, request, context):
         subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
@@ -112,8 +136,8 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         lst = []
         for client_ip in subscribersDict[request.topic]:
             print client_ip
-            lst.append([request,client_ip])
-        results = pool.map(forwardToClient, lst)
+            lst.append([[request],client_ip])
+        results = pool.map(forwardBackupToClient, lst)
         return pr_pb2.acknowledge(ack="data sent to subscribed clients")
 
     def sendBackupRequest(self, request, context):
@@ -143,53 +167,20 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
         return pr_pb2.acknowledge(ack="complete data backup received by the replica...")
 
-    def sendBackup(self, request_iterator, context):
-        requestList = []
-        topic = ""
-        for request in request_iterator :
-            requestList.append(request)
-            topic = request.topic
-        pool = ThreadPool(len(newSubscribers[topic])) 
-        lst = []
-        for client_ip in newSubscribers[topic]:
-            lst.append([requestList,client_ip])
-        results = pool.map(forwardBackupToClient, lst)
-        del newSubscribers[topic]
-        return pr_pb2.acknowledge(ack="complete data backup received and forwarded to resepective clients...")
-
     def publishRequest(self, request, context):
-        returned_ips = find_ips(request.topic)
+        channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
+        stub = pr_pb2_grpc.PublishTopicStub(channel)
+        responses = stub.giveIps(pr_pb2.topic(topic=request.topic))
+        returned_ips =[]
+        for response in responses :
+            print("IP received: " + response.ip)
+            returned_ips.append(response.ip)
         lst = []
         pool = ThreadPool(len(returned_ips)) 
         for returned_ip in returned_ips :
             lst.append([request,returned_ip])
         results = pool.map(publishData, lst)
         return pr_pb2.acknowledge(ack="Published in "+str(len(results))+" topic servers")
-
-    def subscribeRequest(self, request, context):
-        print "Subscribe request from client",request.client_ip," for topic",request.topic
-        subType = ""
-        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
-        if request.topic not in subscribersDict.keys() : 
-            subscribersDict[request.topic] = []
-            print "New subscriber, new frontend subscriber"
-            subType = "new"
-        else : 
-            print "New subscriber, old frontend subscriber"
-            subType = "old"
-        newSubscribers[request.topic] = []
-        newSubscribers[request.topic].append(request.client_ip)
-        subscribersDict[request.topic].append(request.client_ip)
-        if len(subscribersDict[request.topic]) > THRESHOLD :
-            channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
-            stub = pr_pb2_grpc.PublishTopicStub(channel)
-            response = stub.replicaRequest(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
-
-        json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
-        channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
-        stub = pr_pb2_grpc.PublishTopicStub(channel)
-        response = stub.subscribeRequestCentral(pr_pb2.topicSubscribeCentral(topic=request.topic,client_ip=str(SELF_IP)+":"+str(port),type=subType))
-        return pr_pb2.acknowledge(ack="temporary acknowledge")
 
     def publish(self, request, context):
         print "Data received...",request.topic, request.data
@@ -211,7 +202,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         lst = []
         for client_ip in ipList:
             lst.append([request,client_ip])
-        results = pool.map(sendToClient, lst)
+        results = pool.map(sendToFrontend, lst)
         return pr_pb2.acknowledge(ack="Data send to clients complete")
 
 def serve():

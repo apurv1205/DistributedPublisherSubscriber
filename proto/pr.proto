@@ -5,7 +5,7 @@ service PublishTopic {
 
   rpc subscribeRequest (topicSubscribe) returns (acknowledge) {}
 
-  rpc subscribeRequestCentral (topicSubscribeCentral) returns (acknowledge) {}
+  rpc subscribeRequestCentral (topicDataType) returns (acknowledge) {}
 
   rpc giveIps (topic) returns (stream ips) {}
 
@@ -24,8 +24,6 @@ service PublishTopic {
   rpc giveSubscriberIps (topicSubscribe) returns (stream ips) {}
 
   rpc sendData (topicData) returns (acknowledge) {}
-
-  rpc forwardData (topicData) returns (acknowledge) {}
 
   rpc replicaRequest (topicSubscribe) returns (acknowledge) {}
 
@@ -53,7 +51,7 @@ message topicSubscribe {
   string client_ip = 2;
 }
 
-message topicSubscribeCentral {
+message topicDataType {
   string topic = 1;
   string client_ip = 2;
   string type = 3;

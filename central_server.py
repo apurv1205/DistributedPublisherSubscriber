@@ -124,8 +124,8 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
 
         else : 
             dct[request.topic] = {}
-            dct_access_point = json.load(open("dataBackup/centralFrontends","r"))
-            ip = random.choice(dct_access_point["ip"])
+            dctFrontend = json.load(open("dataBackup/centralFrontends","r"))
+            ip = random.choice(dctFrontend["ip"])
             dct[request.topic][ip] = []
             json.dump(dct,(open("dataBackup/centralDictionary","w")))
             yield pr_pb2.ips(ip=ip)
