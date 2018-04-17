@@ -6,4 +6,4 @@ To run on different systems in the institute network, type :
 in all the systems where the scripts are run
 
 To generate proto files : 
-python -m grpc_tools.protoc -I ./ --python_out=. --grpc_python_out=. pr.proto
+python -m grpc_tools.protoc -I proto/ --python_out=. --grpc_python_out=. pr.proto
