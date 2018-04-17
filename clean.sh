@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ -z "$(ls -A dataBackup)" ]; then
+if [ -z "$(ls dataBackup)" ]; then
    :
 else
    rm dataBackup/*
