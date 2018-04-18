@@ -21,8 +21,11 @@ self_ip = str(SELF_IP)+":"+str(port)
 
 class Client(pr_pb2_grpc.PublishTopicServicer):
 	def forwardBackup(self, request_iterator, context):
+		dct = json.load(open("dataBackup/clientDataDB"+port,"r"))
 		for request in request_iterator :
 			print request
+			dct[request.topic] = request.data
+		json.dump(dct,open("dataBackup/clientDataDB"+port,"w"))
 		return pr_pb2.acknowledge(ack="Data received by the client...")
 
 def serve():
@@ -69,6 +72,7 @@ if __name__ == '__main__':
 	thread.start_new_thread(serve,())
 
 	json.dump([],open("dataBackup/clientSubscribedTopics"+port,"w"))
+	json.dump({},open("dataBackup/clientDataDB"+port,"w"))
 
 	a = json.load(open("options","r"))
 	CENTRAL_SERVER_IP = a["centralServer"]
