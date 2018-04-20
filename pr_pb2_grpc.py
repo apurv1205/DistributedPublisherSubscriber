@@ -109,6 +109,16 @@ class PublishTopicStub(object):
         request_serializer=pr__pb2.topicSubscribe.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
+    self.commit_request = channel.unary_unary(
+        '/PublishTopic/commit_request',
+        request_serializer=pr__pb2.commit_req_data.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
+    self.commit_phase_two = channel.unary_unary(
+        '/PublishTopic/commit_phase_two',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
 
 
 class PublishTopicServicer(object):
@@ -248,6 +258,20 @@ class PublishTopicServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def commit_request(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def commit_phase_two(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PublishTopicServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -344,6 +368,16 @@ def add_PublishTopicServicer_to_server(servicer, server):
       'unsubscribeRequestCentral': grpc.unary_unary_rpc_method_handler(
           servicer.unsubscribeRequestCentral,
           request_deserializer=pr__pb2.topicSubscribe.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'commit_request': grpc.unary_unary_rpc_method_handler(
+          servicer.commit_request,
+          request_deserializer=pr__pb2.commit_req_data.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'commit_phase_two': grpc.unary_unary_rpc_method_handler(
+          servicer.commit_phase_two,
+          request_deserializer=pr__pb2.empty.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),
   }
