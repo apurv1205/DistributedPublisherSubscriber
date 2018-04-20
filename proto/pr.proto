@@ -41,7 +41,7 @@ service PublishTopic {
 
   rpc commit_request (commit_req_data) returns (acknowledge) {}
   
-  rpc commit_phase_two (empty) returns (acknowledge) {}
+  rpc commit_phase_two (commit_req_data) returns (acknowledge) {}
 }
 
 
@@ -78,11 +78,11 @@ message empty {
 
 message commit_req_data
 {
-    string action=1;
+    string action = 1;
     string level = 2;
     string data_1 = 3;
     string data_2 = 4;
     string data_3 = 5;
     string filename=6;
-
+    string function_name = 7;
 }

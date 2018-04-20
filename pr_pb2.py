@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='pr.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x08pr.proto\"(\n\ttopicData\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"2\n\x0etopicSubscribe\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\"?\n\rtopicDataType\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\"\x16\n\x05topic\x12\r\n\x05topic\x18\x01 \x01(\t\"\x11\n\x03ips\x12\n\n\x02ip\x18\x01 \x01(\t\"\x1a\n\x0b\x61\x63knowledge\x12\x0b\n\x03\x61\x63k\x18\x01 \x01(\t\"\x07\n\x05\x65mpty\"r\n\x0f\x63ommit_req_data\x12\x0e\n\x06\x61\x63tion\x18\x01 \x01(\t\x12\r\n\x05level\x18\x02 \x01(\t\x12\x0e\n\x06\x64\x61ta_1\x18\x03 \x01(\t\x12\x0e\n\x06\x64\x61ta_2\x18\x04 \x01(\t\x12\x0e\n\x06\x64\x61ta_3\x18\x05 \x01(\t\x12\x10\n\x08\x66ilename\x18\x06 \x01(\t2\xee\x07\n\x0cPublishTopic\x12,\n\x0epublishRequest\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x33\n\x10subscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x39\n\x17subscribeRequestCentral\x12\x0e.topicDataType\x1a\x0c.acknowledge\"\x00\x12\x1b\n\x07giveIps\x12\x06.topic\x1a\x04.ips\"\x00\x30\x01\x12%\n\x07publish\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x1c\n\ngetFrontIp\x12\x06.empty\x1a\x04.ips\"\x00\x12\"\n\nregisterIp\x12\x04.ips\x1a\x0c.acknowledge\"\x00\x12\x34\n\x11sendBackupRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12*\n\nsendBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12-\n\rforwardBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12.\n\x11giveSubscriberIps\x12\x0f.topicSubscribe\x1a\x04.ips\"\x00\x30\x01\x12&\n\x08sendData\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x31\n\x0ereplicaRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\"\n\x0cquerryTopics\x12\x06.empty\x1a\x06.topic\"\x00\x30\x01\x12;\n\x18sendBackupRequestReplica\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x31\n\x11sendBackupReplica\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12\x37\n\x12unsubscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00(\x01\x12\x33\n\x10\x64\x65ReplicaRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12<\n\x19unsubscribeRequestCentral\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x32\n\x0e\x63ommit_request\x12\x10.commit_req_data\x1a\x0c.acknowledge\"\x00\x12*\n\x10\x63ommit_phase_two\x12\x06.empty\x1a\x0c.acknowledge\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x08pr.proto\"(\n\ttopicData\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"2\n\x0etopicSubscribe\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\"?\n\rtopicDataType\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tclient_ip\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\"\x16\n\x05topic\x12\r\n\x05topic\x18\x01 \x01(\t\"\x11\n\x03ips\x12\n\n\x02ip\x18\x01 \x01(\t\"\x1a\n\x0b\x61\x63knowledge\x12\x0b\n\x03\x61\x63k\x18\x01 \x01(\t\"\x07\n\x05\x65mpty\"\x89\x01\n\x0f\x63ommit_req_data\x12\x0e\n\x06\x61\x63tion\x18\x01 \x01(\t\x12\r\n\x05level\x18\x02 \x01(\t\x12\x0e\n\x06\x64\x61ta_1\x18\x03 \x01(\t\x12\x0e\n\x06\x64\x61ta_2\x18\x04 \x01(\t\x12\x0e\n\x06\x64\x61ta_3\x18\x05 \x01(\t\x12\x10\n\x08\x66ilename\x18\x06 \x01(\t\x12\x15\n\rfunction_name\x18\x07 \x01(\t2\xf8\x07\n\x0cPublishTopic\x12,\n\x0epublishRequest\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x33\n\x10subscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x39\n\x17subscribeRequestCentral\x12\x0e.topicDataType\x1a\x0c.acknowledge\"\x00\x12\x1b\n\x07giveIps\x12\x06.topic\x1a\x04.ips\"\x00\x30\x01\x12%\n\x07publish\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x1c\n\ngetFrontIp\x12\x06.empty\x1a\x04.ips\"\x00\x12\"\n\nregisterIp\x12\x04.ips\x1a\x0c.acknowledge\"\x00\x12\x34\n\x11sendBackupRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12*\n\nsendBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12-\n\rforwardBackup\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12.\n\x11giveSubscriberIps\x12\x0f.topicSubscribe\x1a\x04.ips\"\x00\x30\x01\x12&\n\x08sendData\x12\n.topicData\x1a\x0c.acknowledge\"\x00\x12\x31\n\x0ereplicaRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\"\n\x0cquerryTopics\x12\x06.empty\x1a\x06.topic\"\x00\x30\x01\x12;\n\x18sendBackupRequestReplica\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x31\n\x11sendBackupReplica\x12\n.topicData\x1a\x0c.acknowledge\"\x00(\x01\x12\x37\n\x12unsubscribeRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00(\x01\x12\x33\n\x10\x64\x65ReplicaRequest\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12<\n\x19unsubscribeRequestCentral\x12\x0f.topicSubscribe\x1a\x0c.acknowledge\"\x00\x12\x32\n\x0e\x63ommit_request\x12\x10.commit_req_data\x1a\x0c.acknowledge\"\x00\x12\x34\n\x10\x63ommit_phase_two\x12\x10.commit_req_data\x1a\x0c.acknowledge\"\x00\x62\x06proto3')
 )
 
 
@@ -312,6 +312,13 @@ _COMMIT_REQ_DATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='function_name', full_name='commit_req_data.function_name', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -324,8 +331,8 @@ _COMMIT_REQ_DATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=251,
-  serialized_end=365,
+  serialized_start=252,
+  serialized_end=389,
 )
 
 DESCRIPTOR.message_types_by_name['topicData'] = _TOPICDATA
@@ -402,8 +409,8 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=368,
-  serialized_end=1374,
+  serialized_start=392,
+  serialized_end=1408,
   methods=[
   _descriptor.MethodDescriptor(
     name='publishRequest',
@@ -590,7 +597,7 @@ _PUBLISHTOPIC = _descriptor.ServiceDescriptor(
     full_name='PublishTopic.commit_phase_two',
     index=20,
     containing_service=None,
-    input_type=_EMPTY,
+    input_type=_COMMIT_REQ_DATA,
     output_type=_ACKNOWLEDGE,
     options=None,
   ),

@@ -116,7 +116,7 @@ class PublishTopicStub(object):
         )
     self.commit_phase_two = channel.unary_unary(
         '/PublishTopic/commit_phase_two',
-        request_serializer=pr__pb2.empty.SerializeToString,
+        request_serializer=pr__pb2.commit_req_data.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
 
@@ -377,7 +377,7 @@ def add_PublishTopicServicer_to_server(servicer, server):
       ),
       'commit_phase_two': grpc.unary_unary_rpc_method_handler(
           servicer.commit_phase_two,
-          request_deserializer=pr__pb2.empty.FromString,
+          request_deserializer=pr__pb2.commit_req_data.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),
   }
