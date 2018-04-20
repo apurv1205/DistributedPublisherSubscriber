@@ -1,19 +1,20 @@
 # distributedPubSub
 Distributed systems term project for distributed systems course in IIT Kharagpur
 
-To run on different systems in the institute network, type : (disables proxy in current terminal session)
-. env.sh
+To run on different systems in the institute network, type : (disables proxy in current terminal session) <br />
+. env.sh <br />
 in all the systems where the scripts are run
 
-To generate proto files : 
-python -m grpc_tools.protoc -I proto/ --python_out=. --grpc_python_out=. pr.proto
+To generate proto files : <br />
+python -m grpc_tools.protoc -I proto/ --python_out=. --grpc_python_out=. pr.proto <br />
 
-To clean the dataBackup directory:
+To clean the dataBackup directory: <br />
 . clean.sh
 
-To setup mongodb :
-install mongodb version 3 or above
-make data/db in / directory using nautilus or sudo permissions
-type:
-sudo chown -R `id -u` /data/db
+To setup mongodb : <br />
+install mongodb version 3 or above <br />
+make data/db in / directory using nautilus or sudo permissions <br />
+type: <br />
+python -m pip install pymongo <br />
+sudo chown -R `id -u` /data/db <br />
 install mogodb client like robomongo3t to view contents of the mongodb
