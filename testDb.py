@@ -2,12 +2,15 @@ import pprint
 import json
 from pymongo import MongoClient
 
-client = MongoClient('localhost', 27017)
-db = client["metadata"]
-metadata_coll = db["metadata1"]
+port = "50000"
 
-post = {"test":"lol"}
-post_id = metadata_coll.insert_one(post).inserted_id
+client = MongoClient("localhost", 27017)
+db = client['client'+port]
+metadata_coll = db["subscribedTopics"]
 
-print post_id
-raw_input()
+metadata_coll.drop()
+
+post = [{"topic":"b"},{"topic":"a"}]
+metadata_coll.insert_many(post)
+metadata_coll.delete_one({"topic":"b"})
+print "done..."

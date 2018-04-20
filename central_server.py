@@ -8,6 +8,7 @@ import thread
 import random
 import sys
 import socket
+from pymongo import MongoClient
 
 if len(sys.argv) < 2 : 
     print "ERROR : Enter the port for access point server...exiting"
@@ -20,85 +21,78 @@ SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())
 class CentralServer(pr_pb2_grpc.PublishTopicServicer):
 
     def unsubscribeRequestCentral(self, request, context):
-        dct = json.load(open("dataBackup/centralDictionary","r"))
-        dctIp = dct[request.topic]
-        for key, value in dctIp.items():
-            if request.client_ip in value :
-                dct[request.topic][key].remove(request.client_ip)
-        json.dump(dct,open("dataBackup/centralDictionary","w"))
+        twoLevelDict.delete_one({"topic":request.topic,"subscriber":request.client_ip})
         return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
 
     def deReplicaRequest(self, request, context):
-        dct = json.load(open("dataBackup/centralDictionary","r"))
-        dctIp = dct[request.topic]
-        extraSubscribers = []
-        if len(dctIp.keys()) == 1 :
-            return pr_pb2.acknowledge(ack="ERROR") 
-        extraSubscribers = dct[request.topic][request.client_ip]
-        del dct[request.topic][request.client_ip]
-        dctIp = dct[request.topic]
+        dct = {}
+        cursor = twoLevelDict.find({"topic":request.topic})
+        for document in cursor:
+            if dct.has_key(document["publisher"]):
+                pass
+            else : dct[document["publisher"]] = []
+            if document["subscriber"]!="NULL" :
+                dct[document["publisher"]].append(document["subscriber"])
+        if len(dct.keys()) == 1:
+            return pr_pb2.acknowledge(ack="ERROR")
+        extraSubscribers = dct[request.client_ip]
+        twoLevelDict.delete_many({"topic":request.topic,"publisher":request.client_ip})
+        del dct[request.client_ip]
         for subscriber in extraSubscribers :
             allotedServer = ""
             l = sys.maxsize
             tempIp = ""
-            for ip in dctIp.keys() :
-                if len(dctIp[ip]) < l :
-                    l=len(dctIp[ip])
+            for ip in dct.keys():
+                tempCursor = twoLevelDict.find({"topic":request.topic,"publisher":ip})
+                if tempCursor.count() < l:
+                    l = tempCursor.count()
                     tempIp = ip
-            allotedServer = tempIp
-            dct[request.topic][allotedServer].append(subscriber)
-        json.dump(dct,open("dataBackup/centralDictionary","w"))
+
+            twoLevelDict.insert_one({"topic":request.topic,"publisher":tempIp,"subscriber":subscriber})
         return pr_pb2.acknowledge(ack="DONE") 
 
     def querryTopics(self, request, context):
-        dct = json.load(open("dataBackup/centralDictionary","r"))
-        for topic in dct.keys() :
-            yield pr_pb2.topic(topic=topic)
+        cursor = twoLevelDict.find({"subscriber":"NULL"})
+        for document in cursor :
+            yield pr_pb2.topic(topic=document["topic"])
 
     def replicaRequest(self, request, context):
-        dct = json.load(open("dataBackup/centralDictionary","r"))
-        dctIp = dct[request.topic]
-        for key, value in dctIp.items() :
-            allotedServer = key
-            if key == request.client_ip :
-                return pr_pb2.acknowledge(ack="Requesting front end server already a replica for "+request.topic)
-            if request.client_ip in value :
-                print "done modifying the dct"
-                value.remove(request.client_ip)
-        dct[request.topic][request.client_ip] = []
-        dct[request.topic][request.client_ip].append(request.client_ip)
-        print dct[request.topic]
-        json.dump(dct,open("dataBackup/centralDictionary","w"))
+        document = twoLevelDict.find_one({"topic":request.topic,"subscriber":"NULL"})
+        allotedServer = document["publisher"]
+        if twoLevelDict.find({"topic":request.topic,"publisher":request.client_ip}).count() > 0 :
+            return pr_pb2.acknowledge(ack="Requesting front end server already a replica for "+request.topic)
+        if twoLevelDict.find({"topic":request.topic,"subscriber":request.client_ip}).count() > 0 :
+            twoLevelDict.delete_one({"topic":request.topic,"subscriber":request.client_ip})
+
+        twoLevelDict.insert_one({"topic":request.topic,"publisher":request.client_ip,"subscriber":"NULL"})
+        twoLevelDict.insert_one({"topic":request.topic,"publisher":request.client_ip,"subscriber":request.client_ip})
         channel = grpc.insecure_channel(allotedServer)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         response = stub.sendBackupRequestReplica(pr_pb2.topicSubscribe(topic=request.topic, client_ip=request.client_ip))
-        print response.ack
+        print "done modifying the dct"
         return pr_pb2.acknowledge(ack="Requesting front end server "+request.client_ip+" made a replica of topic(backup sent) "+request.topic)
 
     def subscribeRequestCentral(self, request, context):
-        dct = json.load(open("dataBackup/centralDictionary","r"))
         print "Subscribe request from access point",request.client_ip," for topic",request.topic," of type :",request.type
         allotedServer = ""
         if request.type == "new" :
-            ipDct = dct[request.topic]
-            if ipDct.has_key(request.client_ip) :
+            if twoLevelDict.find({"topic":request.topic,"publisher":request.client_ip}).count() > 0:
                 allotedServer = request.client_ip 
             else :
                 l = sys.maxsize
                 tempIp = ""
-                for ip in ipDct.keys() :
-                    if len(ipDct[ip]) < l :
-                        l=len(ipDct[ip])
+                cursor = twoLevelDict.find({"subscriber":"NULL"})
+                for document in cursor :
+                    ip = document["publisher"]
+                    if twoLevelDict.find({"topic":request.topic,"publisher":ip}).count() < l :
+                        l=twoLevelDict.find({"topic":request.topic,"publisher":ip}).count()
                         tempIp = ip
                 allotedServer = tempIp
-            dct[request.topic][allotedServer].append(request.client_ip)
-            json.dump(dct,open("dataBackup/centralDictionary","w"))
+            twoLevelDict.insert_one({"topic":request.topic,"publisher":allotedServer,"subscriber":request.client_ip})
 
         else :
-            dctIp = dct[request.topic]
-            for key, value in dctIp.items() :
-                if request.client_ip in value :
-                    allotedServer=key
+            document = twoLevelDict.find_one({"topic":request.topic,"subscriber":request.client_ip})
+            allotedServer = document["publisher"]
 
         channel = grpc.insecure_channel(allotedServer)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
@@ -107,52 +101,52 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="temporary acknowledge from central server")
 
     def giveSubscriberIps(self, request, context):
-        dct = json.load(open("dataBackup/centralDictionary","r"))
-        ipList = dct[request.topic][request.client_ip]
-        if len(ipList) == 0 : 
+        if twoLevelDict.find({"topic":request.topic,"publisher":request.client_ip}).count() == 1: 
             yield pr_pb2.ips(ip="none")
-        for ip in ipList:
-            yield pr_pb2.ips(ip=ip)
+        else:
+            cursor = twoLevelDict.find({"topic":request.topic,"publisher":request.client_ip})
+            for document in cursor:
+                if document["subscriber"]!="NULL" :
+                    yield pr_pb2.ips(ip=document["subscriber"])
 
     def giveIps(self, request, context):
-        print request.topic
-        dct = json.load(open("dataBackup/centralDictionary","r"))
-        if dct.has_key(request.topic) :
-            ipDct = dct[request.topic]
-            for ip in ipDct.keys():
-                yield pr_pb2.ips(ip=ip)
+        cursor = twoLevelDict.find({"topic":request.topic,"subscriber":"NULL"})
+        if cursor.count() > 0:
+            for document in cursor :
+                yield pr_pb2.ips(ip=document["publisher"])
 
         else : 
-            dct[request.topic] = {}
-            dctFrontend = json.load(open("dataBackup/centralFrontends","r"))
-            ip = random.choice(dctFrontend["ip"])
-            dct[request.topic][ip] = []
-            json.dump(dct,(open("dataBackup/centralDictionary","w")))
+            cursor = frontends.find({"type":"ip"})
+            lst = []
+            for document in cursor :
+                lst.append(document["ip"])
+            ip = random.choice(lst)
+            twoLevelDict.insert_one({"topic":request.topic,"publisher":ip,"subscriber":"NULL"})
             yield pr_pb2.ips(ip=ip)
 
     def getFrontIp(self, request, context) :
-        a = json.load(open("dataBackup/centralFrontends","r"))
-        i = a["index"]
-        m = a["ip"][i]
-        if a["index"] == len(a["ip"])-1 :
-            a["index"] = 0
+        cursor = frontends.find({"type":"index"})
+        if cursor.count() == 0:
+            return pr_pb2.ips(ip="NONE")
+        index = 0
+        for document in cursor :
+            index = document["index"]
+        ipList = []
+        cursor = frontends.find({"type":"ip"})
+        for document in cursor :
+            ipList.append(document["ip"])
+        m = ipList[index]
+        if index == len(ipList) - 1 :
+            frontends.replace_one({"type":"index","index":index},{"type":"index","index":0})
         else :
-            a["index"] += 1
-
-        json.dump(a,open("dataBackup/centralFrontends","w"))
+            frontends.replace_one({"type":"index","index":index},{"type":"index","index":index+1})
         return pr_pb2.ips(ip=m)
 
     def registerIp(self, request, context) :
-        a = json.load(open("dataBackup/centralFrontends","r"))
-        if (len(a)==0) : 
-            a = {}
-            a["index"] = 0
-            a["ip"] = []
-
-        i = a["index"]
-        a["ip"].append(request.ip)
-
-        json.dump(a,open("dataBackup/centralFrontends","w"))
+        cursor = frontends.find({"type":"index"})
+        if cursor.count() == 0:
+            frontends.insert_one({"type":"index","index":0})
+        frontends.insert_one({"type":"ip","ip":request.ip})
         return pr_pb2.acknowledge(ack="Ip added...")
 
 
@@ -172,6 +166,11 @@ if __name__ == '__main__':
     selfIpDct = {}
     selfIpDct["centralServer"] = str(SELF_IP)+":"+port
     json.dump(selfIpDct,open("options","w"))
-    json.dump({},open("dataBackup/centralFrontends","w"))
-    json.dump({},open("dataBackup/centralDictionary","w"))
+
+    mongoClient = MongoClient("localhost", 27017)
+    mongoClient.drop_database('CentralServer'+port)
+    db = mongoClient['CentralServer'+port]
+    frontends = db["frontends"]
+    twoLevelDict = db["twoLevelDict"]
+    oneLevelDict = db["oneLevelDict"]
     serve()

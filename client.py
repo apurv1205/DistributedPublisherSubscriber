@@ -7,6 +7,7 @@ import thread
 import sys
 import json
 import socket
+from pymongo import MongoClient
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 CENTRAL_SERVER_IP = ""
@@ -21,11 +22,9 @@ self_ip = str(SELF_IP)+":"+str(port)
 
 class Client(pr_pb2_grpc.PublishTopicServicer):
 	def forwardBackup(self, request_iterator, context):
-		dct = json.load(open("dataBackup/clientDataDB"+port,"r"))
 		for request in request_iterator :
 			print request
-			dct[request.topic] = request.data
-		json.dump(dct,open("dataBackup/clientDataDB"+port,"w"))
+			dataDump.insert_one({"topic":request.topic,"data":request.data})
 		return pr_pb2.acknowledge(ack="Data received by the client...")
 
 def serve():
@@ -40,15 +39,13 @@ def serve():
 		server.stop(0)
 
 def subscribe_topic(topic,self_ip):
-	lst = json.load(open("dataBackup/clientSubscribedTopics"+port,"r"))
-	if topic in lst :
+	if subscribedTopics.find({"topic":topic}).count() > 0 :
 		print "Already subscribed to the topic :",topic
 	else :
 		channel = grpc.insecure_channel(ACCESS_POINT)
 		stub = pr_pb2_grpc.PublishTopicStub(channel)
 		response = stub.subscribeRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=self_ip))
-		lst.append(topic)
-		json.dump(lst,open("dataBackup/clientSubscribedTopics"+port,"w"))
+		subscribedTopics.insert_one({"topic":topic})
 
 def push_topic(topic,data):
 	channel = grpc.insecure_channel(ACCESS_POINT)
@@ -61,7 +58,9 @@ def get_front_ip():
 	stub = pr_pb2_grpc.PublishTopicStub(channel)
 	response = stub.getFrontIp(pr_pb2.empty())
 	print("Ip alloted: " + response.ip)
-	print response.ip
+	if response.ip == "NONE" :
+		print "No frontend servers active ...extiting..."
+		exit()
 	return response.ip
 
 def generateTopics(lst,client_ip):
@@ -71,8 +70,11 @@ def generateTopics(lst,client_ip):
 if __name__ == '__main__':
 	thread.start_new_thread(serve,())
 
-	json.dump([],open("dataBackup/clientSubscribedTopics"+port,"w"))
-	json.dump({},open("dataBackup/clientDataDB"+port,"w"))
+	mongoClient = MongoClient("localhost", 27017)
+	mongoClient.drop_database('Client'+port)
+	db = mongoClient['Client'+port]
+	subscribedTopics = db["subscribedTopics"]
+	dataDump = db["dataDump"]
 
 	a = json.load(open("options","r"))
 	CENTRAL_SERVER_IP = a["centralServer"]
@@ -117,9 +119,13 @@ if __name__ == '__main__':
 				print "No topics found ..."
 
 		elif response == "3" :
-			lst = json.load(open("dataBackup/clientSubscribedTopics"+port,"r"))
-			for i, topic in enumerate(lst) :
-				print i,": "+topic 
+			cursor = subscribedTopics.find({})
+			lst = []
+			i = 0
+			for document in cursor:
+				print i,": "+document["topic"] 
+				i+=1
+				lst.append(document["topic"])
 			unsubscribeList = []
 			if len(lst) > 0 :	
 				print "Select topics from above choices, seperated by spaces:"
@@ -142,16 +148,19 @@ if __name__ == '__main__':
 			if len(unsubscribeList) > 0 :
 				channel = grpc.insecure_channel(ACCESS_POINT)
 				stub = pr_pb2_grpc.PublishTopicStub(channel)
-				response = stub.unsubscribeRequest(generateTopics(lst,str(SELF_IP)+":"+port))
-				new_list = [x for x in lst if x not in unsubscribeList]
-				json.dump(new_list,open("dataBackup/clientSubscribedTopics"+port,"w"))
+				response = stub.unsubscribeRequest(generateTopics(unsubscribeList,str(SELF_IP)+":"+port))
+				for topic in unsubscribeList :
+					subscribedTopics.delete_one({"topic":topic})
 				print "unsubscribed from topics :",unsubscribeList
 
 		elif response == "4" :
-			lst = json.load(open("dataBackup/clientSubscribedTopics"+port,"r"))
+			cursor = subscribedTopics.find({})
+			lst = []
+			for document in cursor:
+				lst.append(document["topic"])
 			channel = grpc.insecure_channel(ACCESS_POINT)
 			stub = pr_pb2_grpc.PublishTopicStub(channel)
 			response = stub.unsubscribeRequest(generateTopics(lst,str(SELF_IP)+":"+port))
-			json.dump([],open("dataBackup/clientSubscribedTopics"+port,"w"))
+			mongoClient.drop_database('Client'+port)
 			print "exiting now..."
 			exit()

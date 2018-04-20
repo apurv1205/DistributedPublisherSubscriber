@@ -9,6 +9,7 @@ import csv
 from multiprocessing.dummy import Pool as ThreadPool 
 import json
 import socket
+from pymongo import MongoClient
 
 if len(sys.argv) < 2 : 
     print "ERROR : Enter the port for access point server...exiting"
@@ -21,11 +22,8 @@ CENTRAL_SERVER_IP = ""
 THRESHOLD = 1
 SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
-subscribersDict = {}
-newSubscribers = {}
-
-def generateBackup(topic,dct) :
-    for data in dct[topic] :
+def generateBackup(topic,lst) :
+    for data in lst :
         yield pr_pb2.topicData(topic=topic,data=data)
 
 def sendToFrontend(lst):
@@ -38,17 +36,14 @@ def sendToFrontend(lst):
 def forwardBackupToClient(lst):
     requestList = lst[0]
     client_ip = lst[1]
-    temp_dct = {}
+    lst = []
     temp_topic = ""
     for request in requestList :
-        if temp_dct.has_key(request.topic) : pass
-        else : 
-            temp_dct[request.topic] = []
-        temp_dct[request.topic].append(request.data)
+        lst.append(request.data)
         temp_topic = request.topic
     channel = grpc.insecure_channel(client_ip)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
-    response = stub.forwardBackup(generateBackup(temp_topic,temp_dct))
+    response = stub.forwardBackup(generateBackup(temp_topic,lst))
 
 def publishData(lst):
     request = lst[0]
@@ -68,23 +63,19 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
     def subscribeRequest(self, request, context):
         print "Subscribe request from client",request.client_ip," for topic",request.topic
         subType = ""
-        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
-        if request.topic not in subscribersDict.keys() : 
-            subscribersDict[request.topic] = []
-            print "New subscriber, new frontend subscriber"
-            subType = "new"
-        else : 
+        if subscribers.find({"topic":request.topic}).count() > 0 :
             print "New subscriber, old frontend subscriber"
             subType = "old"
-        newSubscribers[request.topic] = []
-        newSubscribers[request.topic].append(request.client_ip)
-        subscribersDict[request.topic].append(request.client_ip)
-        if len(subscribersDict[request.topic]) > THRESHOLD :
+        else : 
+            print "New subscriber, new frontend subscriber"
+            subType = "new"
+        newSubscribers.insert_one({"topic":request.topic,"ip":request.client_ip})
+        subscribers.insert_one({"topic":request.topic,"ip":request.client_ip})
+        if subscribers.find({"topic":request.topic}).count() > THRESHOLD :
             channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
             stub = pr_pb2_grpc.PublishTopicStub(channel)
             response = stub.replicaRequest(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
 
-        json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         response = stub.subscribeRequestCentral(pr_pb2.topicDataType(topic=request.topic,client_ip=str(SELF_IP)+":"+str(port),type=subType))
@@ -96,24 +87,19 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         for request in request_iterator :
             client_ip = request.client_ip
             topicList.append(request.topic)
-        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
         for topic in topicList :
-            subscribersDict[topic].remove(client_ip)
-            if len(subscribersDict[topic]) <= THRESHOLD and len(subscribersDict[topic]) > 0 :
+            subscribers.delete_one({"topic":topic,"ip":client_ip})
+            count = subscribers.find({"topic":topic}).count() 
+            if count <= THRESHOLD and count > 0 :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
                 response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if response.ack == "DONE" :
-                    dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
-                    del dct[topic]
-                    json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
+                    dataDump.delete_many({"topic":topic})
             else :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
                 response = stub.unsubscribeRequestCentral(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
-                if len(subscribersDict[topic]) == 0:
-                    del subscribersDict[topic]
-        json.dump(subscribersDict,open("dataBackup/frontendSubscriberDB"+port+".json","w"))
         return pr_pb2.acknowledge(ack="done")
 
     def sendBackup(self, request_iterator, context):
@@ -122,49 +108,51 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         for request in request_iterator :
             requestList.append(request)
             topic = request.topic
-        pool = ThreadPool(len(newSubscribers[topic])) 
+        cursor = newSubscribers.find({"topic":topic})
+        print cursor.count(),topic
+        pool = ThreadPool(cursor.count()) 
         lst = []
-        for client_ip in newSubscribers[topic]:
-            lst.append([requestList,client_ip])
+        for document in cursor:
+            lst.append([requestList,document["ip"]])
         results = pool.map(forwardBackupToClient, lst)
-        del newSubscribers[topic]
+        newSubscribers.delete_many({"topic":topic})
         return pr_pb2.acknowledge(ack="complete data backup received and forwarded to resepective clients...")
 
     def sendData(self, request, context):
-        subscribersDict = json.load(open("dataBackup/frontendSubscriberDB"+port+".json","r"))
-        pool = ThreadPool(len(subscribersDict[request.topic])) 
+        cursor = subscribers.find({"topic":request.topic})
+        pool = ThreadPool(cursor.count()) 
         lst = []
-        for client_ip in subscribersDict[request.topic]:
-            print client_ip
-            lst.append([[request],client_ip])
+        for document in cursor:
+            lst.append([[request],document["ip"]])
         results = pool.map(forwardBackupToClient, lst)
         return pr_pb2.acknowledge(ack="data sent to subscribed clients")
 
     def sendBackupRequest(self, request, context):
-        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
+        cursor = dataDump.find({"topic":request.topic})
+        lst = []
+        for document in cursor:
+            lst.append(document["data"])
         channel = grpc.insecure_channel(request.client_ip)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
-        response = stub.sendBackup(generateBackup(request.topic,dct))
+        response = stub.sendBackup(generateBackup(request.topic,lst))
         return pr_pb2.acknowledge(ack="data send to : "+request.client_ip+" complete...")
 
     def sendBackupRequestReplica(self, request, context):
-        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
+        cursor = dataDump.find({"topic":request.topic})
+        lst = []
+        for document in cursor:
+            lst.append(document["data"])
         channel = grpc.insecure_channel(request.client_ip)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
-        response = stub.sendBackupReplica(generateBackup(request.topic,dct))
+        response = stub.sendBackupReplica(generateBackup(request.topic,lst))
         return pr_pb2.acknowledge(ack="data send to : "+request.client_ip+" replica complete...")
 
     def sendBackupReplica(self, request_iterator, context):
         requestList = []
         for request in request_iterator :
             requestList.append(request)
-        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
         for request in requestList :
-            print request
-            if request.topic not in dct.keys() : 
-                dct[request.topic] = []
-            dct[request.topic].append(request.data)
-        json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
+            dataDump.insert_one({"topic":request.topic,"data":request.data})
         return pr_pb2.acknowledge(ack="complete data backup received by the replica...")
 
     def publishRequest(self, request, context):
@@ -184,11 +172,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
 
     def publish(self, request, context):
         print "Data received...",request.topic, request.data
-        dct = json.load(open("dataBackup/frontendDataDB"+port+".json","r"))
-        if request.topic not in dct.keys() : 
-            dct[request.topic] = []
-        dct[request.topic].append(request.data)
-        json.dump(dct,open("dataBackup/frontendDataDB"+port+".json","w"))
+        dataDump.insert_one({"topic":request.topic,"data":request.data})
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         responses = stub.giveSubscriberIps(pr_pb2.topicSubscribe(topic=request.topic,client_ip=str(SELF_IP)+":"+port))
@@ -222,6 +206,11 @@ if __name__ == '__main__':
     CENTRAL_SERVER_IP = a["centralServer"]
     register_ip()
 
-    json.dump({},open("dataBackup/frontendDataDB"+port+".json","w"))
-    json.dump({},open("dataBackup/frontendSubscriberDB"+port+".json","w"))
+    mongoClient = MongoClient("localhost", 27017)
+    mongoClient.drop_database('Frontend'+port)
+    db = mongoClient['Frontend'+port]
+    dataDump = db["dataDump"]
+    subscribers = db["subscribers"]
+    newSubscribers = db["newSubscribers"]
+
     serve()
