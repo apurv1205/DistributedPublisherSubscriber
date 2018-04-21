@@ -1,3 +1,1 @@
-{"centralServer": "10.109.57.109:50050",
-"centralServerBackup": "10.109.57.109:50051"
-}
+{"centralServerBackup": "10.147.84.75:50051", "virtualServer": "10.147.84.75:50052", "centralServer": "10.147.84.75:50050"}

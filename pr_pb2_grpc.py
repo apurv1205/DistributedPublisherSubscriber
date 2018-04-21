@@ -119,6 +119,21 @@ class PublishTopicStub(object):
         request_serializer=pr__pb2.commit_req_data.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
+    self.upgradeBackup = channel.unary_unary(
+        '/PublishTopic/upgradeBackup',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
+    self.giveDataPhaseOne = channel.unary_unary(
+        '/PublishTopic/giveDataPhaseOne',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.topic.FromString,
+        )
+    self.giveDataPhaseTwo = channel.unary_unary(
+        '/PublishTopic/giveDataPhaseTwo',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.acknowledge.FromString,
+        )
 
 
 class PublishTopicServicer(object):
@@ -272,6 +287,27 @@ class PublishTopicServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def upgradeBackup(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def giveDataPhaseOne(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def giveDataPhaseTwo(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PublishTopicServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -378,6 +414,21 @@ def add_PublishTopicServicer_to_server(servicer, server):
       'commit_phase_two': grpc.unary_unary_rpc_method_handler(
           servicer.commit_phase_two,
           request_deserializer=pr__pb2.commit_req_data.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'upgradeBackup': grpc.unary_unary_rpc_method_handler(
+          servicer.upgradeBackup,
+          request_deserializer=pr__pb2.empty.FromString,
+          response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'giveDataPhaseOne': grpc.unary_unary_rpc_method_handler(
+          servicer.giveDataPhaseOne,
+          request_deserializer=pr__pb2.empty.FromString,
+          response_serializer=pr__pb2.topic.SerializeToString,
+      ),
+      'giveDataPhaseTwo': grpc.unary_unary_rpc_method_handler(
+          servicer.giveDataPhaseTwo,
+          request_deserializer=pr__pb2.empty.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
       ),
   }

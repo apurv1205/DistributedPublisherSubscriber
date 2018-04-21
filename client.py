@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	dataDump = db["dataDump"]
 
 	a = json.load(open("options","r"))
-	CENTRAL_SERVER_IP = a["centralServer"]
+	CENTRAL_SERVER_IP = a["virtualServer"]
 	ACCESS_POINT = get_front_ip()
 
 	while (True) :

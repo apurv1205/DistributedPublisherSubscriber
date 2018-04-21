@@ -40,8 +40,14 @@ service PublishTopic {
   rpc unsubscribeRequestCentral (topicSubscribe) returns (acknowledge) {}
 
   rpc commit_request (commit_req_data) returns (acknowledge) {}
-  
+
   rpc commit_phase_two (commit_req_data) returns (acknowledge) {}
+
+  rpc upgradeBackup (empty) returns (acknowledge) {}
+
+  rpc giveDataPhaseOne (empty) returns (topic) {}
+
+  rpc giveDataPhaseTwo (empty) returns (acknowledge) {}
 }
 
 
@@ -66,7 +72,7 @@ message topic {
 }
 
 message ips {
-  string ip = 1; 
+  string ip = 1;
 }
 
 message acknowledge {

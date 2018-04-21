@@ -203,7 +203,7 @@ def serve():
 
 if __name__ == '__main__':
     a = json.load(open("options","r"))
-    CENTRAL_SERVER_IP = a["centralServer"]
+    CENTRAL_SERVER_IP = a["virtualServer"]
     register_ip()
 
     mongoClient = MongoClient("localhost", 27017)
