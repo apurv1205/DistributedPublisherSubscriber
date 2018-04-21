@@ -48,6 +48,10 @@ service PublishTopic {
   rpc giveDataPhaseOne (empty) returns (topic) {}
 
   rpc giveDataPhaseTwo (empty) returns (acknowledge) {}
+
+  rpc getMasterIp (empty) returns (ips) {}
+
+  rpc getBackupIp (empty) returns (ips) {}
 }
 
 

@@ -134,6 +134,16 @@ class PublishTopicStub(object):
         request_serializer=pr__pb2.empty.SerializeToString,
         response_deserializer=pr__pb2.acknowledge.FromString,
         )
+    self.getMasterIp = channel.unary_unary(
+        '/PublishTopic/getMasterIp',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.ips.FromString,
+        )
+    self.getBackupIp = channel.unary_unary(
+        '/PublishTopic/getBackupIp',
+        request_serializer=pr__pb2.empty.SerializeToString,
+        response_deserializer=pr__pb2.ips.FromString,
+        )
 
 
 class PublishTopicServicer(object):
@@ -308,6 +318,20 @@ class PublishTopicServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def getMasterIp(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def getBackupIp(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PublishTopicServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -430,6 +454,16 @@ def add_PublishTopicServicer_to_server(servicer, server):
           servicer.giveDataPhaseTwo,
           request_deserializer=pr__pb2.empty.FromString,
           response_serializer=pr__pb2.acknowledge.SerializeToString,
+      ),
+      'getMasterIp': grpc.unary_unary_rpc_method_handler(
+          servicer.getMasterIp,
+          request_deserializer=pr__pb2.empty.FromString,
+          response_serializer=pr__pb2.ips.SerializeToString,
+      ),
+      'getBackupIp': grpc.unary_unary_rpc_method_handler(
+          servicer.getBackupIp,
+          request_deserializer=pr__pb2.empty.FromString,
+          response_serializer=pr__pb2.ips.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

@@ -447,8 +447,17 @@ if __name__ == '__main__':
     print SELF_IP
 
     selfIpDct = json.load(open("options","r"))
+    virtualServer = selfIpDct["virtualServer"]
     centralServer = selfIpDct["centralServer"]
     backupCentralServer = selfIpDct["centralServerBackup"]
+    channel = grpc.insecure_channel(virtualServer)
+    stub = pr_pb2_grpc.PublishTopicStub(channel)
+    try :
+        centralServer = stub.getMasterIp(pr_pb2.empty()).ip
+        centralServerBackup = stub.getBackupIp(pr_pb2.empty()).ip
+    except :
+        pass
+
     mongoClient = MongoClient("localhost", 27017)
     mongoClient.drop_database('CentralServer'+port)
     db = mongoClient['CentralServer'+port]

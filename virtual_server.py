@@ -81,6 +81,14 @@ def toggle_backup(retries):
 
 class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
 
+  def getMasterIp(self, request, context):
+    a = json.load(open("options","r"))
+    return pr_pb2.ips(ip=a["centralServer"])
+
+  def getBackupIp(self, request, context):
+    a = json.load(open("options","r"))
+    return pr_pb2.ips(ip=a["centralServerBackup"])
+
   def unsubscribeRequestCentral(self, request, context):
     response=Forward(request,0)
     return response
