@@ -100,15 +100,22 @@ if __name__ == '__main__':
 			responses = stub.querryTopics(pr_pb2.empty())
 			topicList = []
 			for i,response in enumerate(responses) :
-				print i,": "+response.topic
 				topicList.append(response.topic)
+			cursor = subscribedTopics.find({})
+			subscribedTopicsList = []
+			for document in cursor:
+				subscribedTopicsList.append(document["topic"])
+			newTopicList = list(set(topicList) - set(subscribedTopicsList))
 
-			if len(topicList) > 0 :	
-				print "Select topic from above choices :"
+			for i,topic in enumerate(newTopicList) :
+				print i,": ",topic
+
+			if len(newTopicList) > 0 :	
+				print "Select available unsubscribed topic from above choices :"
 				selectedNumber = raw_input()
 				try :
-					if int(selectedNumber) < len(topicList) :
-						subscribe_topic(topicList[int(selectedNumber)],self_ip)
+					if int(selectedNumber) < len(newTopicList) :
+						subscribe_topic(newTopicList[int(selectedNumber)],self_ip)
 					else :
 						print "Invalid option selected ..."
 
@@ -116,7 +123,7 @@ if __name__ == '__main__':
 					print "Invalid option selected ..."
 
 			else :
-				print "No topics found ..."
+				print "No new topics found ..."
 
 		elif response == "3" :
 			cursor = subscribedTopics.find({})
@@ -164,3 +171,6 @@ if __name__ == '__main__':
 			mongoClient.drop_database('Client'+port)
 			print "exiting now..."
 			exit()
+
+		else :
+			print "Invalid option selected, try again..."
