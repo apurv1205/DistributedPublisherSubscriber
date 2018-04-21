@@ -66,10 +66,10 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
                 if request.level == "2" : 
                     if request.data_1 == "ip" :
                         frontends.insert_one({"type":request.data_1,request.data_1:request.data_2})
-                        logging.info("%s:%s:REMOVE 2 %s %s %s",str(datetime.now()),request.filename,request.data_1,request.data_2,request.data_3)
+                        logging.info("%s:%s:INSERT 2 %s %s %s",str(datetime.now()),request.filename,request.data_1,request.data_2,request.data_3)
                     else :
                         frontends.insert_one({"type":request.data_1,request.data_1:int(request.data_2)})
-                        logging.info("%s:%s:REMOVE 2 %s %s %s",str(datetime.now()),request.filename,request.data_1,request.data_2,request.data_3)
+                        logging.info("%s:%s:INSERT 2 %s %s %s",str(datetime.now()),request.filename,request.data_1,request.data_2,request.data_3)
         
         return pr_pb2.acknowledge(ack="AGREED")
 
