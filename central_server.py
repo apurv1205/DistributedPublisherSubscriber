@@ -230,6 +230,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="COMMIT")
 
     def unsubscribeRequestCentral(self, request, context):
+        print "unsubscribe request from access point",request.client_ip," for topic",request.topic
         if IS_MASTER:
             response = two_phase_init(pr_pb2.commit_req_data(action="remove",level="3",data_1 = request.topic,data_2="", data_3 = request.client_ip, filename = "twoLevelDict",function_name="unsubscribeRequestCentral"))
             if response == "ERROR" :
@@ -274,6 +275,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
             else :
                 twoLevelDict.insert_one({"topic":request.topic,"publisher":tempIp,"subscriber":subscriber})
             # twoLevelDict.insert_one({"topic":request.topic,"publisher":tempIp,"subscriber":subscriber})
+        print "Dereplication for topic server : "+request.client_ip+" started..."
         return pr_pb2.acknowledge(ack="DONE") 
 
     def querryTopics(self, request, context):
@@ -312,7 +314,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         channel = grpc.insecure_channel(allotedServer)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         response = stub.sendBackupRequestReplica(pr_pb2.topicSubscribe(topic=request.topic, client_ip=request.client_ip))
-        print "done modifying the dct"
+        print "Replication for topic server : "+request.client_ip+" started..."
         return pr_pb2.acknowledge(ack="Requesting front end server "+request.client_ip+" made a replica of topic(backup sent) "+request.topic)
 
     def subscribeRequestCentral(self, request, context):
@@ -429,15 +431,6 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.ips(ip=ip)
 
     def registerIp(self, request, context) :
-        cursor = frontends.find({"type":"index"})
-        if cursor.count() == 0:
-            if IS_MASTER:
-                response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2="0", data_3 = "", filename = "frontends",function_name="getFrontIp"))
-                if response == "ERROR" :
-                    frontends.insert_one({"type":"index","index":0})
-            else :
-                frontends.insert_one({"type":"index","index":0})
-            # frontends.insert_one({"type":"index","index":0})
         if IS_MASTER:
             response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "ip",data_2=request.ip, data_3 = "", filename = "frontends",function_name="getFrontIp"))
             if response == "ERROR" :

@@ -167,7 +167,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         responses = stub.giveIps(pr_pb2.topic(topic=request.topic))
         returned_ips =[]
         for response in responses :
-            print("Data to be sent to topic server IP: " + response.ip + " for topic: "+request.topic)
+            print("FRONTEND : Data to be sent to topic server IP: " + response.ip + " for topic: "+request.topic)
             returned_ips.append(response.ip)
         lst = []
         pool = ThreadPool(len(returned_ips)) 
