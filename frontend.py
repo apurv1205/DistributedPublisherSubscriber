@@ -85,6 +85,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         topicList = []
         client_ip = ""
         for request in request_iterator :
+            print "unsubscribe request from client",request.client_ip," for topic",request.topic
             client_ip = request.client_ip
             topicList.append(request.topic)
         for topic in topicList :

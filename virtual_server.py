@@ -26,6 +26,7 @@ SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())
 stub = ""
 stub1 = ""
 
+TIMEOUT = 1
 
 def Forward(request,i):
   global stub
@@ -33,7 +34,9 @@ def Forward(request,i):
   retries=0
 
   while(True):
-    toggle_backup(retries)
+    if retries >=3 :
+      toggle_backup()
+      retries = 0
     try:
       if i == 0:
         response=stub.unsubscribeRequestCentral(request, timeout = 10)
@@ -57,25 +60,24 @@ def Forward(request,i):
     except Exception as e:
       print stub
       retries+=1
-      print "nahi phas raha"
-      time.sleep(1)
+      print "master not reachable", retries,i
+      time.sleep(TIMEOUT)
 
-def toggle_backup(retries):
+def toggle_backup():
   global stub
   global stub1
-  if retries >=3 :
-    a = json.load(open("options","r"))
-    temp = a["centralServer"]
-    a["centralServer"] = a["centralServerBackup"]
-    a["centralServerBackup"] = temp
-    json.dump(a,open("options","w"))
-    print "Master is down toggled to Backup",retries
-    print stub, stub1
-    response = stub1.upgradeBackup(pr_pb2.empty())
-    c=stub
-    stub=stub1
-    stub1=c
-    retries = 0
+
+  a = json.load(open("options","r"))
+  temp = a["centralServer"]
+  a["centralServer"] = a["centralServerBackup"]
+  a["centralServerBackup"] = temp
+  json.dump(a,open("options","w"))
+  print "Master is down toggled to Backup"
+  response = stub1.upgradeBackup(pr_pb2.empty())
+  c=stub
+  stub=stub1
+  stub1=c
+  print stub, stub1
 
 
 
@@ -102,16 +104,20 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
     global stub
     global stub1
     while(True):
-      toggle_backup(retries)
+      if retries >=3 :
+        toggle_backup()
+        retries = 0
       try :
         responses=stub.querryTopics(request, timeout = 10)
         for response in responses :
           yield response
           print response
         return
-      except Exception as e :
-        retries +=1
-        time.sleep(1)
+      except Exception as e:
+        print stub
+        retries+=1
+        print "master not reachable", retries,i
+        time.sleep(TIMEOUT)
 
   def replicaRequest(self, request, context):
     response=Forward(request,3)
@@ -126,32 +132,40 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
     global stub
     global stub1
     while(True):
-      toggle_backup(retries)
+      if retries >=3 :
+        toggle_backup()
+        retries = 0
       try :
         responses=stub.giveSubscriberIps(request, timeout = 10)
         for response in responses :
           yield response
           print response
         return
-      except Exception as e :
-        retries +=1
-        time.sleep(1)
+      except Exception as e:
+        print stub
+        retries+=1
+        print "master not reachable", retries,i
+        time.sleep(TIMEOUT)
 
   def giveIps(self, request, context):
     retries=0
     global stub
     global stub1
     while(True):
-      toggle_backup(retries)
+      if retries >=3 :
+        toggle_backup()
+        retries = 0
       try :
         responses=stub.giveIps(request, timeout = 10)
         for response in responses :
           yield response
           print response
         return
-      except Exception as e :
-        retries +=1
-        time.sleep(1)
+      except Exception as e:
+        print stub
+        retries+=1
+        print "master not reachable", retries,i
+        time.sleep(TIMEOUT)
 
   def getFrontIp(self, request, context) :
     response=Forward(request,7)
@@ -163,7 +177,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
 
 
 def serve():
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
   pr_pb2_grpc.add_PublishTopicServicer_to_server(VirtualServer(), server)
   server.add_insecure_port(str(SELF_IP)+":"+port)
   server.start()
