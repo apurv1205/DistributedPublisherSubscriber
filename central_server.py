@@ -380,48 +380,53 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
             yield pr_pb2.ips(ip=ip)
 
     def getFrontIp(self, request, context) :
-        cursor = frontends.find({"type":"index"})
-        if cursor.count() == 0:
-            return pr_pb2.ips(ip="NONE")
-        index = 0
-        for document in cursor :
-            index = document["index"]
-        ipList = []
+        # cursor = frontends.find({"type":"index"})
+        # if cursor.count() == 0:
+        #     return pr_pb2.ips(ip="NONE")
+        # index = 0
+        # for document in cursor :
+        #     index = document["index"]
+        # ipList = []
+        # cursor = frontends.find({"type":"ip"})
+        # for document in cursor :
+        #     ipList.append(document["ip"])
+        # m = ipList[index]
+        # if index == len(ipList) - 1 and len(ipList)!=0 :
+        #     if IS_MASTER:
+        #         response = two_phase_init(pr_pb2.commit_req_data(action="remove",level="2",data_1 = "index",data_2=str(index), data_3 = "", filename = "frontends",function_name="getFrontIp"))
+        #         if response == "ERROR" :
+        #             frontends.delete_one({"type":"index","index":index})
+        #     else :
+        #         frontends.delete_one({"type":"index","index":index})
+        #     # frontends.delete_one({"type":"index","index":index})
+        #     if IS_MASTER:
+        #         response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2="0", data_3 = "", filename = "frontends",function_name="getFrontIp"))
+        #         if response == "ERROR" :
+        #             frontends.insert_one({"type":"index","index":0})
+        #     else :
+        #         frontends.insert_one({"type":"index","index":0})
+        #     # frontends.insert_one({"type":"index","index":0})
+        # else :
+        #     if IS_MASTER:
+        #         response = two_phase_init(pr_pb2.commit_req_data(action="remove",level="2",data_1 = "index",data_2=str(index), data_3 = "", filename = "frontends",function_name="getFrontIp"))
+        #         if response == "ERROR" :
+        #             frontends.delete_one({"type":"index","index":index})
+        #     else :
+        #         frontends.delete_one({"type":"index","index":index})
+        #     # frontends.delete_one({"type":"index","index":index})
+        #     if IS_MASTER:
+        #         response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2=str(index+1), data_3 = "", filename = "frontends",function_name="getFrontIp"))
+        #         if response == "ERROR" :
+        #             frontends.insert_one({"type":"index","index":index+1})
+        #     else :
+        #         frontends.insert_one({"type":"index","index":index+1})
+        #     # frontends.insert_one({"type":"index","index":index+1})
         cursor = frontends.find({"type":"ip"})
+        lst = []
         for document in cursor :
-            ipList.append(document["ip"])
-        m = ipList[index]
-        if index == len(ipList) - 1 and len(ipList)!=0 :
-            if IS_MASTER:
-                response = two_phase_init(pr_pb2.commit_req_data(action="remove",level="2",data_1 = "index",data_2=str(index), data_3 = "", filename = "frontends",function_name="getFrontIp"))
-                if response == "ERROR" :
-                    frontends.delete_one({"type":"index","index":index})
-            else :
-                frontends.delete_one({"type":"index","index":index})
-            # frontends.delete_one({"type":"index","index":index})
-            if IS_MASTER:
-                response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2="0", data_3 = "", filename = "frontends",function_name="getFrontIp"))
-                if response == "ERROR" :
-                    frontends.insert_one({"type":"index","index":0})
-            else :
-                frontends.insert_one({"type":"index","index":0})
-            # frontends.insert_one({"type":"index","index":0})
-        else :
-            if IS_MASTER:
-                response = two_phase_init(pr_pb2.commit_req_data(action="remove",level="2",data_1 = "index",data_2=str(index), data_3 = "", filename = "frontends",function_name="getFrontIp"))
-                if response == "ERROR" :
-                    frontends.delete_one({"type":"index","index":index})
-            else :
-                frontends.delete_one({"type":"index","index":index})
-            # frontends.delete_one({"type":"index","index":index})
-            if IS_MASTER:
-                response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2=str(index+1), data_3 = "", filename = "frontends",function_name="getFrontIp"))
-                if response == "ERROR" :
-                    frontends.insert_one({"type":"index","index":index+1})
-            else :
-                frontends.insert_one({"type":"index","index":index+1})
-            # frontends.insert_one({"type":"index","index":index+1})
-        return pr_pb2.ips(ip=m)
+            lst.append(document["ip"])
+        ip = random.choice(lst)
+        return pr_pb2.ips(ip=ip)
 
     def registerIp(self, request, context) :
         cursor = frontends.find({"type":"index"})
