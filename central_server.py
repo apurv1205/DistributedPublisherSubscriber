@@ -34,7 +34,6 @@ def print_status():
         print "I am backup..."
 
 def two_phase_init(request):
-    print IS_MASTER,backupCentralServer
     while(IS_LOCKED == True):
         pass
     channel = grpc.insecure_channel(backupCentralServer)
@@ -52,7 +51,6 @@ def two_phase_init(request):
         except Exception as e:
             retries -= 1
             if retries==0:
-                print str(e)
                 logging.info("%s:%s:Backup down, performing transaction...",str(datetime.now()),request.filename)
                 print "Backup down..."
                 return "ERROR"
@@ -111,11 +109,11 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack = "phase two completed")
 
     def upgradeBackup(self, request, context):
-        print_status()
         global IS_MASTER
-        IS_MASTER=True
         global centralServer
         global backupCentralServer
+        IS_MASTER=True
+        print_status()
         centralServer, backupCentralServer = backupCentralServer, centralServer
         return pr_pb2.acknowledge(ack="backup successfully upgraded to master")
 

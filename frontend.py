@@ -61,13 +61,13 @@ def register_ip():
 
 class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
     def subscribeRequest(self, request, context):
-        print "Subscribe request from client",request.client_ip," for topic",request.topic
+        print "\nnew client subscriber ",request.client_ip," for topic",request.topic
         subType = ""
         if subscribers.find({"topic":request.topic}).count() > 0 :
-            print "New subscriber, old frontend subscriber"
+            print "Not the first client for topic ",request.topic
             subType = "old"
         else : 
-            print "New subscriber, new frontend subscriber"
+            print "First client for topic ",request.topic
             subType = "new"
         newSubscribers.insert_one({"topic":request.topic,"ip":request.client_ip})
         subscribers.insert_one({"topic":request.topic,"ip":request.client_ip})
@@ -97,6 +97,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
                 response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if response.ack == "DONE" :
                     dataDump.delete_many({"topic":topic})
+                    print "Dereplicated for topic :",topic
             else :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
@@ -110,7 +111,6 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             requestList.append(request)
             topic = request.topic
         cursor = newSubscribers.find({"topic":topic})
-        print cursor.count(),topic,"<-Topic"
         pool = ThreadPool(cursor.count()) 
         lst = []
         for document in cursor:
@@ -129,7 +129,6 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="data sent to subscribed clients")
 
     def sendBackupRequest(self, request, context):
-        print "in sendBackupRequest, topic : ",request.topic
         cursor = dataDump.find({"topic":request.topic})
         lst = []
         for document in cursor:
@@ -140,6 +139,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="data send to : "+request.client_ip+" complete...")
 
     def sendBackupRequestReplica(self, request, context):
+        print "Sending data backup for topic : "+request.topic+" to the new replica : "+request.client_ip
         cursor = dataDump.find({"topic":request.topic})
         lst = []
         for document in cursor:
@@ -153,8 +153,11 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         requestList = []
         for request in request_iterator :
             requestList.append(request)
+        topic = ""
         for request in requestList :
             dataDump.insert_one({"topic":request.topic,"data":request.data})
+            topic = request.topic
+        print "Replication complete for topic : "+topic
         return pr_pb2.acknowledge(ack="complete data backup received by the replica...")
 
     def publishRequest(self, request, context):

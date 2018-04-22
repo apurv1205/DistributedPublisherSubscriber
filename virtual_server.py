@@ -58,9 +58,8 @@ def Forward(request,i):
         return response
 
     except Exception as e:
-      print stub
       retries+=1
-      print "master not reachable", retries,i
+      print "master not reachable, retry :", retries
       time.sleep(TIMEOUT)
 
 def toggle_backup():
@@ -77,7 +76,6 @@ def toggle_backup():
   c=stub
   stub=stub1
   stub1=c
-  print stub, stub1
 
 
 
@@ -111,12 +109,10 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
         responses=stub.querryTopics(request, timeout = 10)
         for response in responses :
           yield response
-          print response
         return
       except Exception as e:
-        print stub
         retries+=1
-        print "master not reachable", retries
+        print "master not reachable, retry :", retries
         time.sleep(TIMEOUT)
 
   def replicaRequest(self, request, context):
@@ -139,12 +135,10 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
         responses=stub.giveSubscriberIps(request, timeout = 10)
         for response in responses :
           yield response
-          print response
         return
       except Exception as e:
-        print stub
         retries+=1
-        print "master not reachable", retries
+        print "master not reachable, retry :", retries
         time.sleep(TIMEOUT)
 
   def giveIps(self, request, context):
@@ -159,12 +153,10 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
         responses=stub.giveIps(request, timeout = 10)
         for response in responses :
           yield response
-          print response
         return
       except Exception as e:
-        print stub
         retries+=1
-        print "master not reachable", retries
+        print "master not reachable, retry :", retries
         time.sleep(TIMEOUT)
 
   def getFrontIp(self, request, context) :
