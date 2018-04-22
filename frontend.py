@@ -109,7 +109,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
             requestList.append(request)
             topic = request.topic
         cursor = newSubscribers.find({"topic":topic})
-        print cursor.count(),topic
+        print cursor.count(),topic,"<-Topic"
         pool = ThreadPool(cursor.count()) 
         lst = []
         for document in cursor:

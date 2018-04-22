@@ -1,0 +1,11 @@
+2018-04-22 05:41:10.900224:frontends:Backup down, performing transaction...
+2018-04-22 05:41:11.324133:frontends:Backup down, performing transaction...
+2018-04-22 05:42:13.649535:frontends:REMOVE 2 index 0 
+2018-04-22 05:42:13.649738:frontends:COMMIT
+2018-04-22 05:42:13.704958:frontends:COMPLETE
+2018-04-22 05:42:13.912888:frontends:INSERT 2 index 0 
+2018-04-22 05:42:13.913018:frontends:COMMIT
+2018-04-22 05:42:13.970606:frontends:COMPLETE
+2018-04-22 05:42:17.629282:twoLevelDict:INSERT 3 a 10.145.254.183:50051 NULL
+2018-04-22 05:42:17.629449:twoLevelDict:COMMIT
+2018-04-22 05:42:17.783696:twoLevelDict:COMPLETE
