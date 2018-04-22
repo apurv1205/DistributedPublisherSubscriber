@@ -23,6 +23,7 @@ self_ip = str(SELF_IP)+":"+str(port)
 class Client(pr_pb2_grpc.PublishTopicServicer):
 	def forwardBackup(self, request_iterator, context):
 		for request in request_iterator :
+			print "\nReceived new data..."
 			print request
 			dataDump.insert_one({"topic":request.topic,"data":request.data})
 		return pr_pb2.acknowledge(ack="Data received by the client...")

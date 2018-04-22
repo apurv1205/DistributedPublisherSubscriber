@@ -52,7 +52,7 @@ def two_phase_init(request):
             retries -= 1
             if retries==0:
                 logging.info("%s:%s:Backup down, performing transaction...",str(datetime.now()),request.filename)
-                print "Backup down..."
+                print "Backup down...performing transaction"
                 return "ERROR"
 
 def roll_back(request):
@@ -493,5 +493,6 @@ if __name__ == '__main__':
             twoLevelDict.insert(item)
         print "collections Updated in Backup... initiating Phase two"
         response = stub.giveDataPhaseTwo(pr_pb2.empty())
+        print "Phase two complete"
 
     serve()

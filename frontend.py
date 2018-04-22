@@ -57,17 +57,17 @@ def register_ip():
     channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
     response = stub.registerIp(pr_pb2.ips(ip = str(SELF_IP)+":"+str(port)))
-    print(response.ack)
+    print "Ip added to central server..."
 
 class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
     def subscribeRequest(self, request, context):
-        print "\nnew client subscriber ",request.client_ip," for topic",request.topic
+        print "\nFRONTEND : new client subscriber ",request.client_ip," for topic",request.topic
         subType = ""
         if subscribers.find({"topic":request.topic}).count() > 0 :
-            print "Not the first client for topic ",request.topic
+            print "FRONTEND : Not the first client for topic ",request.topic
             subType = "old"
         else : 
-            print "First client for topic ",request.topic
+            print "FRONTEND : First client for topic ",request.topic
             subType = "new"
         newSubscribers.insert_one({"topic":request.topic,"ip":request.client_ip})
         subscribers.insert_one({"topic":request.topic,"ip":request.client_ip})
@@ -85,7 +85,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         topicList = []
         client_ip = ""
         for request in request_iterator :
-            print "unsubscribe request from client",request.client_ip," for topic",request.topic
+            print "FRONTEND : Unsubscribe request from client",request.client_ip," for topic",request.topic
             client_ip = request.client_ip
             topicList.append(request.topic)
         for topic in topicList :
@@ -97,7 +97,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
                 response = stub.deReplicaRequest(pr_pb2.topicSubscribe(topic=topic,client_ip=str(SELF_IP)+":"+port))
                 if response.ack == "DONE" :
                     dataDump.delete_many({"topic":topic})
-                    print "Dereplicated for topic :",topic
+                    print "TOPIC_SERVER : Dereplicated for topic :",topic
             else :
                 channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
                 stub = pr_pb2_grpc.PublishTopicStub(channel)
@@ -139,7 +139,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="data send to : "+request.client_ip+" complete...")
 
     def sendBackupRequestReplica(self, request, context):
-        print "Sending data backup for topic : "+request.topic+" to the new replica : "+request.client_ip
+        print "TOPIC_SERVER : Sending data backup for topic : "+request.topic+" to the new replica : "+request.client_ip
         cursor = dataDump.find({"topic":request.topic})
         lst = []
         for document in cursor:
@@ -161,7 +161,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="complete data backup received by the replica...")
 
     def publishRequest(self, request, context):
-        print "Data received in frontend server for topic : "+request.topic
+        print "FRONTEND : Data received for topic : "+request.topic
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         responses = stub.giveIps(pr_pb2.topic(topic=request.topic))
@@ -177,7 +177,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="Published in "+str(len(results))+" topic servers")
 
     def publish(self, request, context):
-        print "Data received in topic server for topic : "+request.topic
+        print "TOPIC_SERVER : Data received for topic : "+request.topic
         dataDump.insert_one({"topic":request.topic,"data":request.data})
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
@@ -185,7 +185,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         ipList = []
         for response in responses :
             ipList.append(response.ip)
-            print("frontend subscriber IP received: " + response.ip +" for topic: "+request.topic)
+            print("TOPIC_SERVER : frontend subscriber IP received: " + response.ip +" for topic: "+request.topic)
         if ipList[0] == "none" :
             return pr_pb2.acknowledge(ack="No subscribers for this replica")
         pool = ThreadPool(len(ipList)) 
