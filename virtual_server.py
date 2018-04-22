@@ -116,7 +116,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
       except Exception as e:
         print stub
         retries+=1
-        print "master not reachable", retries,i
+        print "master not reachable", retries
         time.sleep(TIMEOUT)
 
   def replicaRequest(self, request, context):
@@ -144,7 +144,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
       except Exception as e:
         print stub
         retries+=1
-        print "master not reachable", retries,i
+        print "master not reachable", retries
         time.sleep(TIMEOUT)
 
   def giveIps(self, request, context):
@@ -164,7 +164,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
       except Exception as e:
         print stub
         retries+=1
-        print "master not reachable", retries,i
+        print "master not reachable", retries
         time.sleep(TIMEOUT)
 
   def getFrontIp(self, request, context) :
