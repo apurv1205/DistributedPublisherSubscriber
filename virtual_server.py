@@ -26,7 +26,7 @@ SELF_IP=[l for l in ([ip for ip in socket.gethostbyname_ex(socket.gethostname())
 stub = ""
 stub1 = ""
 
-TIMEOUT = 1
+TIMEOUT = 3
 
 def Forward(request,i):
   global stub

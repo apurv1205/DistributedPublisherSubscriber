@@ -75,7 +75,6 @@ def roll_back(request):
         typ = document["type"]
         frontends.delete_one({"type":document["type"],typ:document[typ]})
 
-    logging.info("%s:%s:ROLLBACK",str(datetime.now()),request.filename)
     pending_frontends.drop()
     pending_twoLevelDict.drop()
 
@@ -168,9 +167,9 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         channel = grpc.insecure_channel(centralServer)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
 
-        # TIMEOUT = 3
-        # print str(TIMEOUT),"seconds to kill central server..."
-        # time.sleep(TIMEOUT)
+        TIMEOUT = 3
+        print str(TIMEOUT),"seconds to kill central server..."
+        time.sleep(TIMEOUT)
 
         retries = 0
         while(True) :
@@ -187,8 +186,8 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
                 retries += 1
                 if retries > MAX_RETRIES :
                     print "Central down..."
-                    logging.info("%s:%s:Master down, performing rollback...",str(datetime.now()),request.filename)
                     roll_back(request)
+                    logging.info("%s:%s:ROLLBACK",str(datetime.now()),request.filename)
                     return pr_pb2.acknowledge(ack="ERROR")
 
     def commit_phase_two(self,request,context):
