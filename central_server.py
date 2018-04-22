@@ -27,6 +27,12 @@ MAX_RETRIES = 2
 centralServer = ""
 backupCentralServer = ""
 
+def print_status():
+    if IS_MASTER :
+        print "I am master..."
+    else :
+        print "I am backup..."
+
 def two_phase_init(request):
     print IS_MASTER,backupCentralServer
     while(IS_LOCKED == True):
@@ -106,6 +112,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack = "phase two completed")
 
     def upgradeBackup(self, request, context):
+        print_status()
         global IS_MASTER
         IS_MASTER=True
         global centralServer
@@ -477,6 +484,8 @@ if __name__ == '__main__':
     pending_twoLevelDict = db["pending_twoLevelDict"]
     pending_frontends = db["pending_frontends"]
     
+    print_status()
+
     if IS_MASTER == False : 
         channel = grpc.insecure_channel(centralServer)
         stub = pr_pb2_grpc.PublishTopicStub(channel)

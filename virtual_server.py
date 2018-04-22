@@ -198,4 +198,6 @@ if __name__ == '__main__':
   channel1 = grpc.insecure_channel(BACKUP_IP)
   stub1 = pr_pb2_grpc.PublishTopicStub(channel1)
 
+  print "Virtual server up..."
+
   serve()

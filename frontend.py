@@ -158,12 +158,13 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="complete data backup received by the replica...")
 
     def publishRequest(self, request, context):
+        print "Data received in frontend server for topic : "+request.topic
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
         responses = stub.giveIps(pr_pb2.topic(topic=request.topic))
         returned_ips =[]
         for response in responses :
-            print("IP received: " + response.ip)
+            print("Data to be sent to topic server IP: " + response.ip + " for topic: "+request.topic)
             returned_ips.append(response.ip)
         lst = []
         pool = ThreadPool(len(returned_ips)) 
@@ -173,7 +174,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="Published in "+str(len(results))+" topic servers")
 
     def publish(self, request, context):
-        print "Data received...",request.topic, request.data
+        print "Data received in topic server for topic : "+request.topic
         dataDump.insert_one({"topic":request.topic,"data":request.data})
         channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
         stub = pr_pb2_grpc.PublishTopicStub(channel)
@@ -181,7 +182,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         ipList = []
         for response in responses :
             ipList.append(response.ip)
-            print("IP received: " + response.ip)
+            print("frontend subscriber IP received: " + response.ip +" for topic: "+request.topic)
         if ipList[0] == "none" :
             return pr_pb2.acknowledge(ack="No subscribers for this replica")
         pool = ThreadPool(len(ipList)) 

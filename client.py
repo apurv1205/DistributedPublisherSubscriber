@@ -57,7 +57,7 @@ def get_front_ip():
 	channel = grpc.insecure_channel(CENTRAL_SERVER_IP)
 	stub = pr_pb2_grpc.PublishTopicStub(channel)
 	response = stub.getFrontIp(pr_pb2.empty())
-	print("Ip alloted: " + response.ip)
+	print("Frontend server Ip alloted: " + response.ip)
 	if response.ip == "NONE" :
 		print "No frontend servers active ...extiting..."
 		exit()
