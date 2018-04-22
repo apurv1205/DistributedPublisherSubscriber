@@ -103,8 +103,11 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack = "phase two completed")
 
     def upgradeBackup(self, request, context):
+        global IS_MASTER
         IS_MASTER=True
-        centralServer , centralServerBackup = centralServerBackup, centralServer
+        global centralServer
+        global backupCentralServer
+        centralServer, backupCentralServer = backupCentralServer, centralServer
         return pr_pb2.acknowledge(ack="backup successfully upgraded to master")
 
     def commit_request(self,request,context):
@@ -315,7 +318,7 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
             else :
                 l = sys.maxsize
                 tempIp = ""
-                cursor = twoLevelDict.find({"subscriber":"NULL"})
+                cursor = twoLevelDict.find({"topic":request.topic,"subscriber":"NULL"})
                 for document in cursor :
                     ip = document["publisher"]
                     if twoLevelDict.find({"topic":request.topic,"publisher":ip}).count() < l :

@@ -128,6 +128,7 @@ class AccessPoint(pr_pb2_grpc.PublishTopicServicer):
         return pr_pb2.acknowledge(ack="data sent to subscribed clients")
 
     def sendBackupRequest(self, request, context):
+        print "in sendBackupRequest, topic : ",request.topic
         cursor = dataDump.find({"topic":request.topic})
         lst = []
         for document in cursor:

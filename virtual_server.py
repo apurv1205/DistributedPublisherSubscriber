@@ -58,7 +58,7 @@ def Forward(request,i):
       print stub
       retries+=1
       print "nahi phas raha"
-      time.sleep(5)
+      time.sleep(1)
 
 def toggle_backup(retries):
   global stub
@@ -111,7 +111,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
         return
       except Exception as e :
         retries +=1
-        time.sleep(5)
+        time.sleep(1)
 
   def replicaRequest(self, request, context):
     response=Forward(request,3)
@@ -135,7 +135,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
         return
       except Exception as e :
         retries +=1
-        time.sleep(5)
+        time.sleep(1)
 
   def giveIps(self, request, context):
     retries=0
@@ -151,7 +151,7 @@ class VirtualServer(pr_pb2_grpc.PublishTopicServicer):
         return
       except Exception as e :
         retries +=1
-        time.sleep(5)
+        time.sleep(1)
 
   def getFrontIp(self, request, context) :
     response=Forward(request,7)
