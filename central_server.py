@@ -37,7 +37,6 @@ def two_phase_init(request):
     print IS_MASTER,backupCentralServer
     while(IS_LOCKED == True):
         pass
-    IS_LOCKED = True
     channel = grpc.insecure_channel(backupCentralServer)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
     retries = 2
@@ -230,7 +229,6 @@ class CentralServer(pr_pb2_grpc.PublishTopicServicer):
                         logging.info("%s:%s:INSERT 2 %s %s %s",str(datetime.now()),request.filename,request.data_1,request.data_2,request.data_3)
         
         logging.info("%s:%s:COMMIT",str(datetime.now()),request.filename)
-        IS_LOCKED = False
         return pr_pb2.acknowledge(ack="COMMIT")
 
     def unsubscribeRequestCentral(self, request, context):

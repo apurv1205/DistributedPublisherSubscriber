@@ -1,0 +1,27 @@
+Exception calling application: local variable 'IS_LOCKED' referenced before assignment
+Traceback (most recent call last):
+  File "/home/apurv/extra/anaconda2/lib/python2.7/site-packages/grpc/_server.py", line 385, in _call_behavior
+    return behavior(argument, context), True
+  File "central_server.py", line 434, in registerIp
+    response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2="0", data_3 = "", filename = "frontends",function_name="getFrontIp"))
+  File "central_server.py", line 38, in two_phase_init
+    while(IS_LOCKED == True):
+UnboundLocalError: local variable 'IS_LOCKED' referenced before assignment
+Exception calling application: local variable 'IS_LOCKED' referenced before assignment
+Traceback (most recent call last):
+  File "/home/apurv/extra/anaconda2/lib/python2.7/site-packages/grpc/_server.py", line 385, in _call_behavior
+    return behavior(argument, context), True
+  File "central_server.py", line 434, in registerIp
+    response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2="0", data_3 = "", filename = "frontends",function_name="getFrontIp"))
+  File "central_server.py", line 38, in two_phase_init
+    while(IS_LOCKED == True):
+UnboundLocalError: local variable 'IS_LOCKED' referenced before assignment
+Exception calling application: local variable 'IS_LOCKED' referenced before assignment
+Traceback (most recent call last):
+  File "/home/apurv/extra/anaconda2/lib/python2.7/site-packages/grpc/_server.py", line 385, in _call_behavior
+    return behavior(argument, context), True
+  File "central_server.py", line 434, in registerIp
+    response = two_phase_init(pr_pb2.commit_req_data(action="insert",level="2",data_1 = "index",data_2="0", data_3 = "", filename = "frontends",function_name="getFrontIp"))
+  File "central_server.py", line 38, in two_phase_init
+    while(IS_LOCKED == True):
+UnboundLocalError: local variable 'IS_LOCKED' referenced before assignment
