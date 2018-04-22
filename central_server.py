@@ -31,22 +31,25 @@ def two_phase_init(request):
     print IS_MASTER,backupCentralServer
     while(IS_LOCKED == True):
         pass
-    print backupCentralServer
     channel = grpc.insecure_channel(backupCentralServer)
     stub = pr_pb2_grpc.PublishTopicStub(channel)
-    retries = 0
-    try:
-        response = stub.commit_request(request)
-        if response.ack=="OK":
-            logging.info("%s:%s:COMPLETE",str(datetime.now()),request.filename)
-            return "COMPLETE"
-        else :
-            return "ERROR"
-    except Exception as e:
-        print str(e)
-        logging.info("%s:%s:Backup down, performing transaction...",str(datetime.now()),request.filename)
-        print "Backup down..."
-        return "ERROR"
+    retries = 2
+    while (retries>0) :
+        try:
+            response = stub.commit_request(request)
+            if response.ack=="OK":
+                logging.info("%s:%s:COMPLETE",str(datetime.now()),request.filename)
+                return "COMPLETE"
+            else :
+                return "ERROR"
+
+        except Exception as e:
+            retries -= 1
+            if retries==0:
+                print str(e)
+                logging.info("%s:%s:Backup down, performing transaction...",str(datetime.now()),request.filename)
+                print "Backup down..."
+                return "ERROR"
 
 def roll_back(request):
     print("Roll back ...")
