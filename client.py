@@ -99,16 +99,19 @@ if __name__ == '__main__':
 			stub = pr_pb2_grpc.PublishTopicStub(channel)
 			responses = stub.querryTopics(pr_pb2.empty())
 			topicList = []
-			for i,response in enumerate(responses) :
+			i = 0
+			for response in responses :
+				i+=1
 				topicList.append(response.topic)
 			cursor = subscribedTopics.find({})
 			subscribedTopicsList = []
 			for document in cursor:
 				subscribedTopicsList.append(document["topic"])
 			newTopicList = list(set(topicList) - set(subscribedTopicsList))
-
-			for i,topic in enumerate(newTopicList) :
+			i=0
+			for topic in newTopicList :
 				print i,": ",topic
+				i+=1
 
 			if len(newTopicList) > 0 :	
 				print "Select available unsubscribed topic from above choices :"
