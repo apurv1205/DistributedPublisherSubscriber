@@ -1,6 +1,11 @@
 # distributedPubSub
 Distributed systems term project for distributed systems course in IIT Kharagpur
 
+Team members : 
+Apurv Kumar 14CS10006
+Shubham Sharma 14CS30034
+Asket Agarwal 14CS30006
+
 To run on different systems in the institute network, type : (disables proxy in current terminal session) <br />
 . env.sh <br />
 in all the systems where the scripts are run
