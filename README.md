@@ -1,4 +1,4 @@
-# distributedPubSub
+# distributed publisher subscriber system
 Distributed systems term project for distributed systems course in IIT Kharagpur
 
 Team members : 
